@@ -120,8 +120,37 @@ def lookback_plateau():
     plt.close(fig)
 
 
+def policy_curves():
+    """Position (fraction of the vol-target weight) vs trailing 12-month Sharpe, L = 252 (se = 1)."""
+    from scipy.stats import norm
+    s = np.linspace(-3, 3, 601)
+    curves = {
+        "S1 TSMOM: sign": (np.sign(s), COLORS["S1"], "-"),
+        "S3 flat prior": (2 * norm.cdf(s) - 1, "#4a3aa7", "-"),   # palette slot 7; aqua means long-only elsewhere
+        "S5, no-premium asset (m₀ = 0)": (2 * norm.cdf(s / np.sqrt(2)) - 1, COLORS["S5"], "--"),
+        "S5, premium asset (m₀ = 0.3)": (2 * norm.cdf((s + 0.3) / np.sqrt(2)) - 1, COLORS["S5"], "-"),
+    }
+    fig, ax = plt.subplots(figsize=(6.8, 2.0))
+    ax.axhline(0, color=INK_2, lw=0.8)
+    ax.axvline(0, color=INK_2, lw=0.8)
+    ax.axhline(1, color=INK_2, lw=0.8, ls=":")
+    ax.text(-2.95, 1.04, "long-only", color=INK_2, fontsize=7, va="bottom")
+    for label, (y, color, ls) in curves.items():
+        ax.plot(s, y, color=color, ls=ls, lw=1.6 if "premium asset" in label else 1.2, label=label)
+    ax.annotate("S5 turns short only below −0.3", xy=(-0.3, 0), xytext=(-2.9, 0.45), fontsize=7.5, color=INK,
+                arrowprops=dict(arrowstyle="-", color=INK_2, lw=0.7))
+    ax.set_xlabel("Trailing 12-month Sharpe of the asset (the evidence)")
+    ax.set_ylabel("Position")
+    ax.set_xlim(-3, 3)
+    ax.set_ylim(-1.15, 1.25)
+    ax.legend(loc="lower right", fontsize=7.5, handlelength=2.2)
+    fig.savefig(FIG_DIR / "fig0_policy.png")
+    plt.close(fig)
+
+
 def make_all(opens, closes, rf, weights_fn):
     FIG_DIR.mkdir(parents=True, exist_ok=True)
+    policy_curves()
     equity_curves(opens, closes, rf, weights_fn)
     sharpe_intervals()
     lookback_plateau()

@@ -29,6 +29,8 @@
   .page-break { break-before: page; }
   .refs p { text-align: left; margin-bottom: 2.5pt; padding-left: 14pt; text-indent: -14pt; }
   code { font-size: 10.5pt; }
+  .box { border: 0.8pt solid #999; background: #f6f5f2; padding: 4pt 7pt; margin: 5pt 0; break-inside: avoid; }
+  .box p { margin-bottom: 2.5pt; }
   table.wrap td, table.wrap th { white-space: normal; vertical-align: top; }
   table.wrap td:first-child { white-space: nowrap; }
 </style>
@@ -40,7 +42,8 @@
 Code: github.com/gabejsto-ops/GQH (reproduce: <code>python run_all.py --final</code> and <code>--holdout</code>)</div>
 
 <h2>1. Summary</h2>
-<p>Time-series momentum (TSMOM) bets that an asset keeps moving in the direction of its past year's return. It
+<p><b>Trend-following asks whether an asset's trend is above zero. A Bayesian asks whether it is above minus the asset's risk
+premium.</b> Time-series momentum (TSMOM) bets that an asset keeps moving in the direction of its past year's return. It
 treats a coin-flip trend of +0.1% the same as a strong one, and it ignores the most robust fact in asset pricing:
 assets with a risk premium drift up on average. We rebuild TSMOM as a Bayesian would. The <b>prior</b> is the
 asset's risk premium, the <b>evidence</b> is its trend, and the position is sized by the posterior probability
@@ -65,6 +68,9 @@ equally. The posterior is z = (m<sub>0</sub> + ŝ) / (√2·se) and the position
 The effect: a premium asset stays long unless its trend is clearly negative; a weak trend gets a small bet; a strong
 trend gets a full one. <b>Predictions</b> (committed <code>b1c8d78</code> before any code): S5 beats standard TSMOM (S1) on
 held-out data, with lower turnover and most of TSMOM's crash protection. <b>Fails if</b> S5's holdout Sharpe ≤ S1's.</p>
+<figure class="narrow"><img src="figures/fig0_policy.png" alt="Position vs trend strength"><figcaption class="cap"><b>Figure 1.</b> The whole idea in
+one picture. S1 flips from full short to full long at zero; the flat prior (S3) replaces the step with a confidence curve; the risk-premium
+prior (S5) shifts that curve left for assets that earn a premium, so they turn short only when the trend is clearly negative.</figcaption></figure>
 
 <h3>What we borrowed, and what is new</h3>
 <table class="wrap">
@@ -132,11 +138,11 @@ on synthetic prices (zero weights give zero P&amp;L; a single long position matc
 <tr><td>Worst month</td><td>−2.1%</td><td>−3.4%</td><td>−5.8%</td><td>−1.9%</td><td>−3.2%</td><td>−2.6%</td></tr>
 <tr><td>Skew (daily)</td><td>−0.76</td><td>−0.42</td><td>−0.95</td><td>−0.63</td><td>−0.41</td><td>−0.13</td></tr>
 </tbody></table>
-<figure><img src="figures/fig1_equity.png" alt="Equity curves"><figcaption class="cap"><b>Figure 1.</b> Growth of $1 over cash, net of 5 bps,
+<figure><img src="figures/fig1_equity.png" alt="Equity curves"><figcaption class="cap"><b>Figure 2.</b> Growth of $1 over cash, net of 5 bps,
 each strategy scaled to 10% vol using development-period vol only.</figcaption></figure>
 
 <h3>Evidence across all four test sets</h3>
-<figure><img src="figures/fig2_sharpe_ci.png" alt="Sharpe by test set"><figcaption class="cap"><b>Figure 2.</b> Excess Sharpe with 95%
+<figure><img src="figures/fig2_sharpe_ci.png" alt="Sharpe by test set"><figcaption class="cap"><b>Figure 3.</b> Excess Sharpe with 95%
 block-bootstrap CIs (filled dots); hollow dots show the naive Sharpe including T-bill carry. S5 beats S1 in 3 of 4 test sets and long-only in all 4.</figcaption></figure>
 <table>
 <thead><tr><th>Sharpe, L = 252, 5 bps</th><th>S5 prior</th><th>S1 TSMOM</th><th>S3 flat prior</th><th>Long-only</th><th>S5 − S1 [95% CI]</th><th>Pre-registered test</th></tr></thead>
@@ -155,9 +161,17 @@ block-bootstrap CIs (filled dots); hollow dots show the naive Sharpe including T
 <tr><td>126 days</td><td>0.31</td><td>0.52</td><td>0.52</td><td>0.54</td><td>0.53</td><td>0.55</td></tr>
 <tr><td>252 days (pre-reg.)</td><td>0.06</td><td>0.37</td><td>0.37</td><td>0.39</td><td>0.37</td><td><b>0.45</b></td></tr>
 </tbody></table>
+<div class="box">
+<p><b>The elegant idea that failed (Round 1).</b> In Bayes' rule, <i>new = old + k(news − old)</i> with gain k = σ<sub>0</sub><sup>2</sup> / (σ<sub>0</sub><sup>2</sup> + σ<sub>s</sub><sup>2</sup>).
+Conservative investors use λk with λ &lt; 1, leaving a gap of (1 − λ)k(news − old) that closes slowly. High volatility can mean
+two opposite things: a large, reliable surprise (large k, a big gap, so the trend should continue) or noise (large σ<sub>s</sub><sup>2</sup>, small k,
+so moves should reverse). Standard TSMOM de-risks both. We separated them with Kaufman's efficiency ratio, |net move| / path length,
+which is 1 for a straight line and ≈ 0.22 for 21 days of noise, and stopped de-risking in efficient high-vol months (S2).</p>
+<p><span class="bad"><b>Result: null.</b></span> Only 2.3% of asset-months qualify, so S2 ≈ S1. Shock vs noisy months: p = 0.56; the continuous
+version: p = 0.82. <b>Lesson:</b> under-reaction is real on average, but we could not detect <i>when</i> it is largest. So we stopped trying to
+time the gap and changed how the evidence is weighed. That path led to S3, and then to S5.</p>
+</div>
 <ul>
-<li><span class="bad"><b>Round 1, de-risk only on noise (S2): failed.</b></span> Only 2.3% of asset-months qualify as information shocks,
-so S2 ≈ S1. The mechanism tests were null: shock vs noisy months p = 0.56, continuous version p = 0.82.</li>
 <li><span class="bad"><b>Round 2, calm efficient trends (S4): failed.</b></span> The gains vanish at 10 bps; the mechanism test p = 0.39.</li>
 <li><b>Round 2, flat-prior Bayesian (S3): a step, then abandoned.</b> Its headline 2024–26 Sharpe of 1.08 turned out to be T-bill
 interest the first engine credited without charging for cash; measured over cash it is 0.21, and at matched risk it was
@@ -176,10 +190,10 @@ turnover is 14% lower, but over 2024–26 it is 18% <i>higher</i>. S5's skew is 
 <li><b>Regime.</b> Bonds supplied most development P&amp;L (sleeve Sharpe 0.51) and lost over 2024–26 (−0.77), when commodities (1.23) and equities (0.67) carried it.</li>
 </ul>
 <p><b>What survives.</b> The prior improved the flat Bayesian (S5 &gt; S3) in <b>9 of 9</b> lookback-by-test-set comparisons. Extra fill delay
-degrades S5 smoothly (0.45 → 0.42 → 0.41: no lookahead). S5 ≥ S1 across 105–252-day lookbacks (Figure 3). It beats S1 by more at 10 bps
+degrades S5 smoothly (0.45 → 0.42 → 0.41: no lookahead). S5 ≥ S1 across 105–252-day lookbacks (Figure 4). It beats S1 by more at 10 bps
 (+0.08). And it keeps the crash profile (excess return, S5 / S1 / long-only): GFC 2008-09 to 2009-03 <span class="good">−0.5% / +2.4%</span> vs −5.9%;
 COVID crash <span class="good">−3.1% / −2.3%</span> vs −12.8%; 2022 <span class="good">+3.6% / +9.9%</span> vs −11.0%. It also loses less in the 2009 rebound (−1.8% vs S1 −5.2%).</p>
-<figure class="narrow"><img src="figures/fig3_plateau.png" alt="Lookback plateau"><figcaption class="cap"><b>Figure 3.</b> Excess Sharpe
+<figure class="narrow"><img src="figures/fig3_plateau.png" alt="Lookback plateau"><figcaption class="cap"><b>Figure 4.</b> Excess Sharpe
 across lookbacks (diagnostic only, not used for selection).</figcaption></figure>
 
 <h2>6. Risk Management</h2>
@@ -210,6 +224,12 @@ and the prior weight come from theory, but a different choice would give a diffe
 <li><b>Missing costs:</b> ETF borrow fees (FXY, USO and EWZ shorts), leverage financing above the T-bill rate, and wider spreads in stress.</li>
 <li><b>Next:</b> (1) rerun on 1985+ futures to get statistical power; (2) estimate the prior from data (empirical Bayes) instead of
 fixing it; (3) backtest the class caps as a separately pre-registered trial; (4) partial pooling of trends within each asset class.</li>
+<li><b>The same mechanism, new places.</b> <i>Supply chains:</i> news diffuses slowly between economically linked firms (Cohen &amp; Frazzini
+2008; Menzly &amp; Ozbas 2010). An AI supply-chain version would treat upstream moves (chip designers, foundries) as evidence about
+downstream drift (memory, networking, data centers, power) inside the same posterior framework. <i>Attention:</i> a model that watches live
+streams for brand exposure (logo detection plus speech transcription) would measure attention shocks directly. The attention literature
+predicts a brief jump and then a fade (Barber &amp; Odean 2008; Da, Engelberg &amp; Gao 2011); our team's 30-event celebrity pilot found
+reactions mostly complete on day 0. A first test would use Google Trends spikes as the attention measure.</li>
 </ul>
 
 <div class="page-break"></div>
@@ -217,9 +237,12 @@ fixing it; (3) backtest the class caps as a separately pre-registered trial; (4)
 <div class="refs">
 <p>Bailey, D. &amp; López de Prado, M. (2014). The Deflated Sharpe Ratio. <i>Journal of Portfolio Management</i> 40(5).</p>
 <p>Barberis, N., Shleifer, A. &amp; Vishny, R. (1998). A Model of Investor Sentiment. <i>Journal of Financial Economics</i> 49(3).</p>
+<p>Barber, B. &amp; Odean, T. (2008). All That Glitters: The Effect of Attention and News on the Buying Behavior of Individual and Institutional Investors. <i>Review of Financial Studies</i> 21(2).</p>
 <p>Baltas, A.-N. &amp; Kosowski, R. (2013). Momentum Strategies in Futures Markets and Trend-Following Funds. Working paper, SSRN.</p>
 <p>Barroso, P. &amp; Santa-Clara, P. (2015). Momentum Has Its Moments. <i>Journal of Financial Economics</i> 116(1).</p>
 <p>Black, F. &amp; Litterman, R. (1992). Global Portfolio Optimization. <i>Financial Analysts Journal</i> 48(5).</p>
+<p>Cohen, L. &amp; Frazzini, A. (2008). Economic Links and Predictable Returns. <i>Journal of Finance</i> 63(4).</p>
+<p>Da, Z., Engelberg, J. &amp; Gao, P. (2011). In Search of Attention. <i>Journal of Finance</i> 66(5).</p>
 <p>Daniel, K. &amp; Moskowitz, T. (2016). Momentum Crashes. <i>Journal of Financial Economics</i> 122(2).</p>
 <p>Edwards, W. (1968). Conservatism in Human Information Processing. In <i>Formal Representation of Human Judgment</i>, Wiley.</p>
 <p>Harvey, C., Liu, Y. &amp; Zhu, H. (2016). …and the Cross-Section of Expected Returns. <i>Review of Financial Studies</i> 29(1).</p>
@@ -228,6 +251,7 @@ fixing it; (3) backtest the class caps as a separately pre-registered trial; (4)
 <p>Ilmanen, A. (2011). <i>Expected Returns: An Investor's Guide to Harvesting Market Rewards</i>. Wiley.</p>
 <p>Kaufman, P. (1995). <i>Smarter Trading</i>. McGraw-Hill (efficiency ratio).</p>
 <p>Künsch, H. (1989). The Jackknife and the Bootstrap for General Stationary Observations. <i>Annals of Statistics</i> 17(3).</p>
+<p>Menzly, L. &amp; Ozbas, O. (2010). Market Segmentation and Cross-Predictability of Returns. <i>Journal of Finance</i> 65(4).</p>
 <p>Moreira, A. &amp; Muir, T. (2017). Volatility-Managed Portfolios. <i>Journal of Finance</i> 72(4).</p>
 <p>Moskowitz, T., Ooi, Y. H. &amp; Pedersen, L. (2012). Time Series Momentum. <i>Journal of Financial Economics</i> 104(2).</p>
 <p><b>Data:</b> Yahoo Finance (via the <code>yfinance</code> package); Kenneth R. French Data Library (F-F Research Factors and Momentum, daily);
