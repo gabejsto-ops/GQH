@@ -140,3 +140,21 @@ Net of 5 bps, in excess of 3-month T-bills, L = 252. 95% intervals from a 21-day
 - **Capacity (excess):** S3 Sharpe 0.39 → 0.33 at $100M → 0.20 at $1B → negative by $10B.
 - **H3 OOS** remains significant (p = 0.006) after the correction, and in-sample remains null
   (p = 0.82). Treated as probably chance or regime-specific; not claimed.
+
+## Round 3: risk-premium prior (S5), in-sample 2008–2024, 3 more trials (18 total)
+
+Pre-registered in HYPOTHESIS.md (Round 3) and coded before running. Excess-of-cash Sharpe, 5 bps (10 bps):
+
+| Lookback | S1 TSMOM | S3 flat prior | **S5 risk-premium prior** |
+|---|---|---|---|
+| 63d  | 0.38 (0.28) | 0.35 (0.26) | 0.38 (0.28) |
+| 126d | 0.52 (0.44) | 0.54 (0.47) | **0.55 (0.48)** |
+| 252d | 0.37 (0.31) | 0.39 (0.34) | **0.45 (0.40)** |
+
+- At L = 252: S5 Sharpe 0.45 [95% CI −0.02, 0.95], P(Sharpe ≤ 0) = 0.032, the first variant below 5%.
+  S5 − S1 = +0.07 [−0.13, +0.29], not significant. Deflated Sharpe 0.80 (N = 18, hurdle 0.23); below 0.95.
+- Lowest turnover of any vol-targeted variant (2.7×/yr vs 5.1× for S1). Its lead grows with doubled costs (+0.08).
+- Crash profile kept, smaller: GFC −0.5% (long-only −5.9%), COVID crash −3.1% (−12.8%), 2022 +3.6% (S1 +9.9%,
+  long-only −11.0%). Smaller loss in the 2009 rebound (−1.8% vs S1 −5.2%). Skew worse (−0.77).
+- Correlation with S1 0.90 and with long-only 0.51: a genuine blend of the two, as designed.
+- Beats S1 at 2 of 3 lookbacks in-sample (tie at 63d). The pre-registered verdict comes from the holdouts.
