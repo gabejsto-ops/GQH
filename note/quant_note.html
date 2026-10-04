@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Trading Like a Bayesian - Quant Note</title>
+<style>
+  @page { size: Letter; margin: 1in; }
+  html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body { font-family: "Times New Roman", Times, serif; font-size: 11pt; line-height: 1.22;
+         color: #111; background: #fff; margin: 0; }
+  h1 { font-size: 15pt; margin: 0 0 2pt; }
+  .byline { font-size: 11pt; color: #444; margin-bottom: 6pt; }
+  h2, h3 { break-after: avoid; }
+  td { white-space: nowrap; }
+  figure.narrow img { width: 72%; margin: 0 auto; }
+  h2 { font-size: 12pt; margin: 9pt 0 3pt; border-bottom: 0.6pt solid #999; padding-bottom: 1pt; }
+  h3 { font-size: 11pt; margin: 6pt 0 2pt; }
+  p { margin: 0 0 4.5pt; text-align: justify; }
+  ul { margin: 0 0 4.5pt; padding-left: 15pt; }
+  li { margin-bottom: 1.5pt; text-align: justify; }
+  table { border-collapse: collapse; width: 100%; font-size: 11pt; margin: 3pt 0 4pt; }
+  th, td { padding: 0.5pt 4pt; text-align: right; }
+  th:first-child, td:first-child { text-align: left; }
+  thead th { border-bottom: 0.8pt solid #333; font-weight: bold; }
+  tbody tr:last-child td { border-bottom: 0.8pt solid #333; }
+  table { border-top: 0.8pt solid #333; }
+  .cap { font-size: 11pt; color: #333; margin: 1pt 0 5pt; }
+  figure { margin: 4pt 0 2pt; break-inside: avoid; }
+  figure img { width: 100%; display: block; }
+  .bad { color: #a32020; } .good { color: #1a6b2d; }
+  .page-break { break-before: page; }
+  .refs p { text-align: left; margin-bottom: 2.5pt; padding-left: 14pt; text-indent: -14pt; }
+  .tight td, .tight th { padding: 0 3.5pt; }
+</style>
+</head>
+<body>
+
+<h1>Trading Like a Bayesian: Confidence-Weighted Time-Series Momentum, and Why It Does Not Beat the Original</h1>
+<div class="byline">Gator Quant Hacks 2026 · Systematic Trading Track · [Team member names] ·
+Code: github.com/gabejsto-ops/GQH (one command: <code>python run_all.py --final</code>)</div>
+
+<h2>1. Summary</h2>
+<p>We start from conservatism: investors update toward news by less than Bayes' rule implies, so prices drift
+after information and time-series momentum (TSMOM) captures the drift. We tried to use Bayesian reasoning to
+improve TSMOM on 23 liquid ETFs (2008–2026): first by de-risking only on noisy volatility, then by sizing each
+position by the posterior probability that its trend is real. We pre-registered every hypothesis in git, ran
+<b>15 strategy variants and 3 mechanism tests</b>, held out the last two years and evaluated them once.
+A naive backtest looks strong: an out-of-sample Sharpe of <b>1.08</b> net of costs. Our own audit takes it apart.
+Measured over cash, it is <b>0.21</b> (95% CI −0.72 to 1.58). The Bayesian sizing is indistinguishable from
+standard TSMOM, and both barely beat simply holding the same vol-targeted portfolio. What survives is the
+known property of trend-following: a similar long-run Sharpe to long-only (~0.4) with protection in crashes.</p>
+
+<h2>2. Economic Hypothesis</h2>
+<p><b>Edge source (behavioral).</b> In a Bayesian update, <i>new = old + k(news − old)</i>. Conservative
+investors use a gain below <i>k</i> (Edwards 1968; Barberis, Shleifer &amp; Vishny 1998), so part of each
+repricing arrives late as drift. <b>Who is on the other side:</b> investors anchored to pre-news valuations,
+plus hedgers and policy makers who trade gradually for non-profit reasons. <b>Why it persists:</b> the bias is
+human, and trend-following suffers long whipsaw drawdowns that limit the capital competing it away. The base
+effect is documented across 58 futures by Moskowitz, Ooi &amp; Pedersen (2012).</p>
+<p><b>Our extensions (committed before any backtest, commit <code>06b9b69</code>; Round 2 committed
+<code>d0e5746</code> before running).</b> <i>Round 1 (H1/H2):</i> high volatility mixes information shocks
+(large reliable news, large <i>k</i>, so trends should continue) with noise (small <i>k</i>, so moves reverse). Standard TSMOM
+cuts size in both; we predicted that cutting only in noisy, inefficient high-vol months would improve it.
+<i>Round 2 (H4):</i> a Bayesian bets in proportion to confidence. With a flat prior, P(drift &gt; 0) = Φ(z),
+where z is the t-stat of the trailing mean return, so position = vol-target weight × (2Φ(z) − 1). We predicted
+higher Sharpe and lower turnover than sign-based TSMOM. <b>Each hypothesis fails if</b> it does not beat S1
+net of costs; the mechanism tests fail if the conditional difference is ≤ 0 or insignificant.</p>
+
+<h2>3. Data &amp; Universe</h2>
+<p><b>Universe (fixed by rule):</b> the most liquid US-listed ETF per distinct exposure with inception before
+mid-2007: 8 equity (SPY, QQQ, IWM, EFA, EEM, EWJ, EWZ, FXI), 6 bond (SHY, IEF, TLT, LQD, HYG, TIP), 5 commodity
+(GLD, SLV, DBC, USO, DBA), 3 currency (UUP, FXE, FXY), 1 real estate (VNQ). <b>Sources:</b> Yahoo Finance daily bars via
+<code>yfinance</code>, split- and dividend-adjusted (<code>auto_adjust</code>); risk-free rate = 3-month T-bill (FRED DTB3);
+factors from the Kenneth French Data Library. We chose public data over the Webull API so judges can reproduce
+results without credentials. <b>Sample:</b> 2007-04-11 (HYG launch) to 2026-10-02; signals start 2008-05 after a one-year
+warm-up. <b>Out-of-sample:</b> the last 2 years (2024-10-03 onward), since 20% of 19.5 years is longer than the 2-year cap. The
+loader drops those rows unless <code>--final</code> is passed.</p>
+<p><b>Data problems.</b> <i>Survivorship:</i> all 23 still trade and were picked knowing they are liquid today; we also
+excluded UNG by name because we knew its roll losses. Both are hindsight. <i>Corporate actions:</i> adjusted prices; USO's
+1-for-8 reverse split (2020-04-28) checked as correctly adjusted. <i>Missing data:</i> none in sample. All four one-day moves
+above 25% were verified as genuine (EWZ 2008-10-13; USO 2020-03-09 and 2020-04-21; SLV 2026-01-30). Nothing is filled forward.</p>
+
+<h2>4. Methodology</h2>
+<p><b>Signal and timing.</b> At each month-end close, signal = sign of the trailing <i>L</i>-day return. Trades fill at the
+<b>next day's open</b>; positions drift with prices until the next rebalance. <b>Sizing</b> (portfolio budget 10% vol split
+equally, per-asset cap 2× equity, 60-day realized vol): <b>S0</b> sign only, ±1/N; <b>S1</b> vol-targeted (standard TSMOM);
+<b>S2</b> S1 but sized with 252-day vol in "information-shock" months (21-day vol above its trailing-year 75th percentile
+<i>and</i> 21-day efficiency ratio |net move| / path length &gt; 0.44, twice the random-walk level 1/√21); <b>S3</b> S1 ×
+(2Φ(z) − 1), the Bayesian sizing; <b>S4</b> S1 doubled in calm, efficient months (the low-vol mirror of S2). Thresholds
+come from theory, not fitting; S3 adds no free parameters. <b>Variants:</b> L ∈ {63, 126, 252} × 5 sizings = <b>15
+strategies</b>, all reported. After Round 2 we selected S3 at the pre-registered L = 252. The lookback was fixed in advance,
+but the choice of sizing rule depended on results, and we disclose that.</p>
+<p><b>Costs.</b> 5 bps per side on traded notional (commission-free broker; half-spreads are about 1 bp for the largest ETFs and
+several bps for thin ones such as FXY, DBA and UUP; plus open-auction slippage). Every result is also shown at <b>10 bps</b>. No borrow
+cost on shorts or financing on leverage (see §8). <b>Returns are measured in excess of cash:</b> Σ<sub>i</sub> w<sub>i</sub>(r<sub>i</sub> − r<sub>f</sub>),
+the TSMOM-literature convention. We added this after our audit found the original engine credited T-bill carry (§5).</p>
+<p><b>Tests.</b> Mechanism tests on 4,500 asset-months (outcome = signal × next-month excess return / 60-day vol; Welch
+and month-clustered OLS): H1 shock vs noisy high-vol months; H3 continuous slope on efficiency; H5a calm efficient vs inefficient.
+Overfitting controls: Deflated Sharpe Ratio (Bailey &amp; López de Prado 2014) over N = 15; 21-day block-bootstrap 95% CIs
+(2,000 draws); fills delayed by 1 and 4 extra days (lookahead check); a lookback sweep of 21–252 days (plateau check); a long-only baseline
+(S1's weights, always long); comparison at matched 10% vol; Fama-French 3 + momentum regression (HAC). The engine was verified on
+synthetic prices (zero weights give zero P&amp;L; a single long position matches buy-and-hold exactly; an asset earning
+exactly r<sub>f</sub> shows zero excess return).</p>
+
+<h2>5. Results</h2>
+<table class="tight">
+<thead><tr><th>L = 252, 5 bps, over cash</th><th colspan="3">In-sample 2008-06 → 2024-10</th><th colspan="3">Out-of-sample 2024-10 → 2026-10</th></tr>
+<tr><th></th><th>S3 (final)</th><th>S1</th><th>Long-only</th><th>S3 (final)</th><th>S1</th><th>Long-only</th></tr></thead>
+<tbody>
+<tr><td>Excess return (ann.)</td><td>1.16%</td><td>1.55%</td><td>1.62%</td><td>0.71%</td><td>1.10%</td><td>1.94%</td></tr>
+<tr><td>Volatility</td><td>3.08%</td><td>4.40%</td><td>5.40%</td><td>3.67%</td><td>4.90%</td><td>5.71%</td></tr>
+<tr><td><b>Sharpe</b></td><td><b>0.39</b></td><td>0.37</td><td>0.33</td><td><b>0.21</b></td><td>0.25</td><td>0.36</td></tr>
+<tr><td>Sharpe 95% CI</td><td>−0.09, 0.87</td><td>−0.10, 0.84</td><td>−0.19, 0.85</td><td>−0.72, 1.58</td><td>−0.69, 1.65</td><td>−0.45, 1.86</td></tr>
+<tr><td>Sharpe at 10 bps</td><td>0.34</td><td>0.31</td><td>—</td><td>0.18</td><td>0.21</td><td>—</td></tr>
+<tr><td>Max drawdown</td><td>−7.1%</td><td>−11.8%</td><td>−14.7%</td><td>−3.6%</td><td>−4.7%</td><td>−5.6%</td></tr>
+<tr><td>Turnover (×/yr)</td><td>3.2</td><td>5.1</td><td>2.1</td><td>2.6</td><td>3.9</td><td>1.9</td></tr>
+<tr><td>Worst month</td><td>−2.7%</td><td>−3.4%</td><td>−5.8%</td><td>−2.5%</td><td>−3.2%</td><td>−2.6%</td></tr>
+<tr><td>Skew (daily)</td><td>−0.67</td><td>−0.42</td><td>−0.95</td><td>−0.51</td><td>−0.41</td><td>−0.13</td></tr>
+<tr><td><i>Naive Sharpe (with carry)</i></td><td><i>0.49</i></td><td><i>0.45</i></td><td><i>0.56</i></td><td><i>1.08</i></td><td><i>1.06</i></td><td><i>1.22</i></td></tr>
+</tbody></table>
+<figure><img src="figures/fig1_equity.png" alt="Equity curves"><figcaption class="cap"><b>Figure 1.</b> Growth of $1 over cash, net of 5 bps, each strategy scaled to 10% vol using in-sample vol only. Shaded: out-of-sample, evaluated once.</figcaption></figure>
+
+<h3>The 15 variants (in-sample excess Sharpe, 5 bps; Deflated-Sharpe hurdle for N = 15 is 0.23)</h3>
+<table class="tight">
+<thead><tr><th>Lookback</th><th>S0 sign</th><th>S1 vol target</th><th>S2 shock-aware (R1)</th><th>S3 Bayesian (R2)</th><th>S4 calm tilt (R2)</th></tr></thead>
+<tbody>
+<tr><td>63 days</td><td>0.18</td><td>0.38</td><td>0.38</td><td>0.35</td><td>0.39</td></tr>
+<tr><td>126 days</td><td>0.31</td><td>0.52</td><td>0.52</td><td>0.54</td><td>0.53</td></tr>
+<tr><td>252 days (pre-reg.)</td><td>0.06</td><td>0.37</td><td>0.37</td><td><b>0.39</b></td><td>0.37</td></tr>
+</tbody></table>
+<p class="cap">Best Deflated Sharpe: 0.89 (126-day S3/S4); none passes 0.95. Out-of-sample results for every variant are in the appendix.</p>
+
+<h3>What failed (the hypothesis log)</h3>
+<ul>
+<li><span class="bad"><b>H2, S2 shock-aware de-risking: failed.</b></span> Only 2.3% of asset-months qualify as shocks, so S2 ≈ S1 (Sharpe gap ≤ 0.004).</li>
+<li><span class="bad"><b>H1, shock months trend more: not significant.</b></span> 0.034 vs 0.009 (n = 105 vs 995), Welch p = 0.56, clustered p = 0.65.</li>
+<li><span class="bad"><b>H3, continuous version: failed.</b></span> Slope −0.02, p = 0.82 (n = 1,100). Out of sample the slope is +0.59, p = 0.006; given the in-sample null, n = 133 and the number of tests run, we treat that as chance.</li>
+<li><span class="bad"><b>H5, calm efficient trends (S4): failed.</b></span> H5a 0.027 vs 0.014, p = 0.39; small Sharpe gains come with 30–50% more turnover and vanish at 10 bps.</li>
+<li><b>H4, Bayesian sizing (S3): partly supported in-sample</b> (beats S1 at 126 and 252 days, not 63; turnover −37%), then <span class="bad">dismantled below</span>.</li>
+</ul>
+
+<h3>Tearing down our own headline</h3>
+<ul>
+<li><b>Cash carry (1.08 → 0.21).</b> The first engine credited bond-ETF interest but paid none on cash. With T-bills at about 4.5% and
+S3 about 0.8× net long, 3.6 of its 4.5 points of out-of-sample return were the T-bill rate. The apparent improvement out of sample was an artifact of high rates.</li>
+<li><b>Size, not skill.</b> S3 runs at lower vol, which flattered its turnover and drawdown. At matched 10% vol, turnover is
+10.5× vs 11.6× (−10%, not −37%) and max drawdown −22% vs −25% in-sample, and the drawdown advantage is gone out of sample (−9.7% vs −9.4%).
+S3 − S1 Sharpe: +0.02 [−0.14, 0.18] in-sample, −0.04 [−0.26, 0.15] out of sample; correlation 0.95–0.98.</li>
+<li><b>Not significant.</b> Every interval includes zero (in-sample P(Sharpe ≤ 0) = 0.055, borderline); no Deflated Sharpe passes 0.95.</li>
+<li><b>The signal barely beats holding.</b> Long-only with identical vol targeting earns 0.33 in-sample and <i>beats</i> both trend versions out of sample (0.36).</li>
+<li><b>Known factors.</b> S3 in-sample loads on momentum (β = 0.09, t = 19) with a small market β of 0.035. Alpha is 0.9%/yr, t = 1.26 (R² = 0.25).
+Out of sample, market β rises to 0.12 (t = 9.8) and alpha is negative.</li>
+<li><b>Regime dependence.</b> Bonds were 60% of in-sample excess P&amp;L (sleeve Sharpe 0.52) and the worst sleeve out of sample (−0.93);
+out-of-sample gains came from commodities (1.32) and equities (0.66).</li>
+</ul>
+<figure class="narrow"><img src="figures/fig2_sharpe_ci.png" alt="Sharpe with confidence intervals"><figcaption class="cap"><b>Figure 2.</b> Excess Sharpe with 95% block-bootstrap intervals (filled) against the naive Sharpe including T-bill carry (hollow).</figcaption></figure>
+<p><b>What survives.</b> No lookahead: one and four days of extra fill delay lower S3 smoothly (0.39 → 0.37 → 0.36). A plateau: Sharpe 0.30–0.54
+for 42–252-day lookbacks (Figure 3). Robust to doubled costs (−0.05). Positive in 12 of 17 calendar years. And the crash profile that
+separates trend from long-only (excess return, S3 / S1 / long-only): GFC 2008-09 to 2009-03 <span class="good">0.0% / +2.4%</span> vs −5.9%;
+COVID crash <span class="good">−3.0% / −2.3%</span> vs −12.8%; 2022 <span class="good">+5.9% / +9.9%</span> vs −11.0%. The cost is rebounds: March–June 2009
+−3.1% / −5.2% vs +4.6%.</p>
+<figure class="narrow"><img src="figures/fig3_plateau.png" alt="Lookback plateau"><figcaption class="cap"><b>Figure 3.</b> Excess Sharpe across lookbacks (diagnostic only, not used for selection). Smooth in-sample; noisy over 2 years out of sample.</figcaption></figure>
+
+<h2>6. Risk Management</h2>
+<p><b>Built into the backtest:</b> per-asset vol targeting (10% portfolio budget / 23), a 2× equity cap per asset, monthly rebalancing,
+23 assets across 5 classes, and confidence scaling (average gross 0.80×, maximum 2.14×; average net 0.50×). <b>Observed risk (in-sample, S3):</b>
+daily 99% VaR −0.59%, CVaR −0.79%, worst day −1.42% (2022-11-10), longest drawdown 1,032 trading days. <b>Main weakness found:</b> vol
+targeting levers low-vol bonds. SHY reached 164% of equity and the bond sleeve 192% gross, so a rate shock is the concentrated risk.
+<b>Proposed rules for live trading</b> (stated in advance, deliberately <i>not</i> backtested to avoid a 16th trial): (1) gross cap of 100% of
+equity per asset class and 2.5× in total; (2) if drawdown exceeds 2× the target annual vol, halve the vol target until half the loss is
+recovered; (3) monitor 1-year rolling market β and cut the equity sleeve if β &gt; 0.3; (4) retire the strategy if its 3-year excess Sharpe is
+below zero <i>and</i> drawdown exceeds the backtest maximum (−7.1%). <b>Tail:</b> the documented weakness is sharp V-shaped reversals
+(2009, March 2020), where trend is short at the bottom; we do not hedge it.</p>
+
+<h2>7. Liquidity &amp; Capacity</h2>
+<p>Positions are monthly trades in ETFs whose 2024 median daily dollar volume ranges from about $10M (FXY) to billions (SPY, HYG, LQD).
+We model cost per trade as fixed 5 bps + square-root impact σ<sub>daily</sub>·√(trade $ / ADV $), using the trailing 20-day ADV known before
+the trade. S3's in-sample excess Sharpe (0.44 gross of costs) falls to <b>0.38 at $1M, 0.33 at $100M, 0.20 at $1B and −0.20 at $10B</b>; out of sample
+0.21 → 0.16 at $100M. At $1B the median trade is 1.3% of ADV, but the largest trades in thin names (HYG traded only $3.6M a day in 2008; FXY,
+DBC and UUP at $10–22M today) exceed daily volume from about $100M, so those trades would need to be split across days. Practical capacity:
+<b>about $100M</b>, set by the currency and commodity ETFs. Using adjusted prices understates early dollar volume, and ETF creation/redemption
+adds liquidity our ADV measure misses, so both biases make this estimate conservative.</p>
+
+<h2>8. Limitations &amp; Next Steps</h2>
+<ul>
+<li><b>Short out-of-sample period:</b> 2 years gives a Sharpe standard error of about 0.8; it cannot confirm or reject a 0.4 edge.</li>
+<li><b>Selection and hindsight:</b> Round 2 was designed after seeing Round 1; S3 was chosen among sizings after results; the universe reflects 2026 knowledge.</li>
+<li><b>Missing costs:</b> ETF borrow fees (FXY, USO and EWZ shorts), leverage financing above the T-bill rate, and wider spreads at the open in stress.</li>
+<li><b>Data:</b> Yahoo adjustments rescale history with later dividends (returns unaffected); DTB3 is a discount-basis rate divided by 252.</li>
+<li><b>Next:</b> (1) rerun on 1985+ futures, the original universe, to give S3 statistical power; (2) backtest the class caps as a separately
+pre-registered trial; (3) a 50/50 blend of trend and long-only, since their crisis returns offset; (4) an informative prior that shrinks each
+asset's drift toward its asset-class mean, a fuller Bayesian version of S3.</li>
+</ul>
+
+<div class="page-break"></div>
+<h2>References</h2>
+<div class="refs">
+<p>Bailey, D. &amp; López de Prado, M. (2014). The Deflated Sharpe Ratio. <i>Journal of Portfolio Management</i> 40(5).</p>
+<p>Barberis, N., Shleifer, A. &amp; Vishny, R. (1998). A Model of Investor Sentiment. <i>Journal of Financial Economics</i> 49(3).</p>
+<p>Barroso, P. &amp; Santa-Clara, P. (2015). Momentum Has Its Moments. <i>Journal of Financial Economics</i> 116(1).</p>
+<p>Daniel, K. &amp; Moskowitz, T. (2016). Momentum Crashes. <i>Journal of Financial Economics</i> 122(2).</p>
+<p>Edwards, W. (1968). Conservatism in Human Information Processing. In <i>Formal Representation of Human Judgment</i>, Wiley.</p>
+<p>Grinold, R. &amp; Kahn, R. (2000). <i>Active Portfolio Management</i>, 2nd ed. McGraw-Hill.</p>
+<p>Harvey, C., Liu, Y. &amp; Zhu, H. (2016). …and the Cross-Section of Expected Returns. <i>Review of Financial Studies</i> 29(1).</p>
+<p>Hong, H. &amp; Stein, J. (1999). A Unified Theory of Underreaction, Momentum Trading, and Overreaction. <i>Journal of Finance</i> 54(6).</p>
+<p>Hurst, B., Ooi, Y. H. &amp; Pedersen, L. (2017). A Century of Evidence on Trend-Following Investing. <i>Journal of Portfolio Management</i> 44(1).</p>
+<p>Kaufman, P. (1995). <i>Smarter Trading</i>. McGraw-Hill (efficiency ratio).</p>
+<p>Künsch, H. (1989). The Jackknife and the Bootstrap for General Stationary Observations. <i>Annals of Statistics</i> 17(3).</p>
+<p>Moreira, A. &amp; Muir, T. (2017). Volatility-Managed Portfolios. <i>Journal of Finance</i> 72(4).</p>
+<p>Moskowitz, T., Ooi, Y. H. &amp; Pedersen, L. (2012). Time Series Momentum. <i>Journal of Financial Economics</i> 104(2).</p>
+<p><b>Data:</b> Yahoo Finance (via the <code>yfinance</code> package); Kenneth R. French Data Library (F-F Research Factors and Momentum, daily);
+Federal Reserve Bank of St. Louis, FRED series DTB3. <b>Software:</b> Python, pandas, NumPy, SciPy, statsmodels, matplotlib. AI tools were used for
+coding assistance; the team reviewed and is responsible for all code and claims.</p>
+</div>
+
+<h2>Appendix (optional): full audit trail</h2>
+<p>Every hypothesis, decision and result is timestamped in the repository: <code>HYPOTHESIS.md</code> (pre-registration),
+<code>DECISIONS.md</code> (choices made after it), and <code>VARIANTS.md</code> (every trial, including failures). Commit order: hypothesis
+13:44 → data 13:50 → engine (verified on synthetic data) 14:01 → Round 1 results 14:01 → Round 2 pre-registration 20:26 → results 20:27 →
+S3 selection 20:29 → robustness 20:32 → freeze 20:36 → out-of-sample 20:37 → cash-carry audit 20:50 → corrected reporting 21:04 (all 2026-10-03 ET).</p>
+<table class="tight">
+<thead><tr><th>Out-of-sample excess Sharpe, 5 bps</th><th>S0</th><th>S1</th><th>S2</th><th>S3</th><th>S4</th></tr></thead>
+<tbody>
+<tr><td>63 days</td><td>0.35</td><td>0.01</td><td>0.03</td><td>0.08</td><td>−0.10</td></tr>
+<tr><td>126 days</td><td>0.29</td><td>−0.11</td><td>−0.11</td><td>−0.04</td><td>−0.12</td></tr>
+<tr><td>252 days</td><td>0.84</td><td>0.25</td><td>0.26</td><td>0.21</td><td>0.17</td></tr>
+</tbody></table>
+<p class="cap">Reported for completeness and not used for any choice. The equal-notional S0 at 252 days had the best out-of-sample result (0.84), the reverse of its
+in-sample rank (0.06). That reversal illustrates how noisy a 2-year window is.</p>
+</body>
+</html>

@@ -12,7 +12,7 @@ from src.analysis import deflated_sharpe, h1_panel, h1_test, h3_test, h5a_test, 
 from src.backtest import simulate
 from src.config import (COST_BPS, COST_BPS_STRESS, IS_END, LOOKBACKS, OOS_START, PRIMARY_LOOKBACK,
                         RESULTS_DIR, SIZINGS)
-from src import robustness
+from src import figures, robustness
 from src.data import load_panel, load_rf
 from src.signals import common_signal_dates, features, target_weights
 
