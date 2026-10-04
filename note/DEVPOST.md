@@ -1,43 +1,51 @@
 # Devpost submission text
 
 ## Project name
-Trading Like a Bayesian: Confidence-Weighted Time-Series Momentum
+Trading Like a Bayesian: A Risk-Premium Prior for Time-Series Momentum
 
 ## Tagline
-We tried to make trend-following smarter with Bayes' rule, tested 15 variants honestly, and took our own best-looking result apart.
+Trend-following that thinks like a Bayesian: start from the risk premium, update on the trend, and bet in proportion to the evidence.
 
 ## Inspiration
-Time-series momentum works because investors update their beliefs too slowly when news arrives (conservatism), so prices drift
-after information. If the market under-updates, a strategy that updates like a proper Bayesian should do better. We wanted to test that rather than assume it.
+Time-series momentum works because investors update their beliefs too slowly (conservatism), so prices drift after news.
+But standard TSMOM is not very Bayesian itself: it bets full size on coin-flip trends and ignores the best-documented fact in
+finance, that assets with a risk premium tend to go up. We asked what a trader who actually follows Bayes' rule would do.
 
 ## What it does
-A monthly trend-following strategy on 23 liquid ETFs (equities, bonds, commodities, currencies, real estate). Standard TSMOM takes
-the sign of each asset's 12-month return and sizes it by volatility. Our version sizes each bet by the posterior probability that the
-trend is real, (2Φ(z) − 1) where z is the trend's t-stat, so weak, noisy trends get small positions.
+A monthly strategy on 23 liquid ETFs (equities, bonds, commodities, currencies, real estate). For each asset it combines a
+prior (the asset class's long-run risk premium) with the evidence (its trailing 12-month Sharpe) and sizes the position by
+the posterior probability that the asset's drift is positive. Premium assets stay long unless the trend is clearly negative;
+weak trends get small bets; strong trends get full ones.
 
 ## How we built it
-- Pre-registered every hypothesis in git before running it (Round 1: de-risk only on noisy volatility; Round 2: Bayesian sizing and a
-  low-volatility mirror test). 15 strategy variants and 3 mechanism tests, all reported, including failures.
-- Public data only (Yahoo Finance, Ken French Library, FRED), so anyone can reproduce results with `python run_all.py --final`.
-- Next-day-open fills, 5 bps per side (10 bps tested), the last 2 years locked in code and evaluated once.
-- Deflated Sharpe over 15 trials, block-bootstrap confidence intervals, delayed-fill lookahead check, lookback plateau, a long-only
-  baseline, a matched-risk comparison, factor regression, square-root-impact capacity, and stress windows.
+- Three rounds of pre-registered hypotheses in git, 18 strategy variants, every result reported, including the failures.
+- Public data only (Yahoo Finance, Ken French Library, FRED); anyone can reproduce results with two commands.
+- Next-day-open fills, 5 bps per side (10 bps tested), returns measured over cash.
+- Held-out testing: after the original 2024–26 holdout was used up, we pre-registered two new untouched test sets (a
+  2001–2007 backcast and 30 ETFs never used) and evaluated the final strategy on them once.
+- Deflated Sharpe, block-bootstrap confidence intervals, a lookahead check, a lookback plateau, a long-only baseline, a
+  matched-risk comparison, factor regression, square-root-impact capacity, and stress windows.
+
+## Results
+Excess-of-cash Sharpe, our strategy vs standard TSMOM vs long-only: development 0.45 / 0.37 / 0.33; 2024–26 0.46 / 0.25 / 0.36;
+backcast 0.71 / 0.73 / 0.37; 30 new ETFs 0.38 / 0.18 / 0.36. Our strategy beats TSMOM in 3 of 4 test sets and long-only in all 4,
+and keeps TSMOM's crash protection (COVID crash −3.1% vs −12.8% for long-only).
 
 ## Challenges we ran into
-Our first out-of-sample result was a Sharpe of 1.08. Auditing it, we found the engine credited the interest that bond ETFs pay without
-charging for cash, so much of the "edge" was the 4.5% T-bill rate. Measured over cash it is 0.21. We also found that our "37% less
-turnover" came mostly from running smaller positions; at matched risk it is 10%.
+- Our first two ideas failed (de-risking only on noisy volatility; leaning into calm trends).
+- Our second strategy's headline out-of-sample Sharpe of 1.08 turned out to be T-bill interest the engine credited without
+  charging for cash. Measured properly, it was 0.21. That audit is what led us to the risk-premium prior.
+- Using the original holdout for development meant designing fresh, untouched test sets to keep the evaluation honest.
 
 ## What we learned
-- Most of our ideas failed: shock-aware de-risking, the continuous efficiency test, and calm-trend sizing all came out null.
-- Bayesian sizing is statistically indistinguishable from standard TSMOM (Sharpe difference +0.02, CI −0.14 to 0.18).
-- Trend-following barely beats simply holding the same vol-targeted portfolio over 2008–2026, but it protects in crashes:
-  2008 0.0% vs −5.9%, the COVID crash −3.0% vs −12.8%, and 2022 +5.9% vs −11.0% (excess returns, trend vs long-only).
-- Out of sample, the 2-year window is too short to confirm or reject a Sharpe of 0.4.
+- The improvement is real in 3 of 4 test sets but modest and not statistically significant: every confidence interval for
+  "ours minus TSMOM" includes zero, and the strategy narrowly loses in the 2001–2007 backcast, where its long bias cost it
+  the 2002 short-equity trend.
+- The prior consistently helps a flat Bayesian sizing rule: 9 of 9 comparisons.
+- Most of the strategy's apparent drawdown advantage comes from running at lower risk; at matched risk it is similar to TSMOM.
 
 ## What's next
-Rerun on 1985+ futures for statistical power, backtest asset-class exposure caps as a separate pre-registered trial, and test a
-trend/long-only blend for its crisis offset.
+Test on 1985+ futures for statistical power, estimate the prior from data (empirical Bayes), and backtest asset-class exposure caps.
 
 ## Built with
 Python, pandas, NumPy, SciPy, statsmodels, matplotlib, yfinance
