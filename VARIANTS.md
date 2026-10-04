@@ -44,3 +44,30 @@ Deflated Sharpe hurdle for 15 trials: 0.28. Net Sharpe at 5 bps (10 bps in brack
   come with 30–50% more turnover and disappear at 10 bps (252d: 0.38 vs 0.39). Mechanism test H5a:
   calm efficient 0.035 vs calm inefficient 0.018, Welch p = 0.28, clustered p = 0.47; not significant.
 - **Deflated Sharpe:** best is S3 at 126d with 0.93 probability; no variant clears 0.95.
+
+## Robustness diagnostics on the final spec (S3 vs S1, L = 252, in-sample, 5 bps)
+
+Diagnostics only; nothing here changed the strategy. The lookback sweep (9 lookbacks × 2 sizings)
+is disclosed, but it was not used for selection. Tables: `results/robust_*_IS_is.csv`.
+
+- **Lookahead check:** filling 1 or 4 extra days late lowers S3's Sharpe gradually (0.49 → 0.47 → 0.46),
+  with no collapse. That is consistent with no lookahead.
+- **Plateau:** S3 Sharpe is 0.50–0.65 across 84–252d lookbacks and beats S1 at every lookback ≥ 126d,
+  but not at 42–105d. Bayesian sizing helps slow trend signals, not fast ones. 21d fails for both.
+- **S3 vs S1 is NOT statistically significant:** vol-matched return gap +0.2%/yr, HAC t = 0.56,
+  p = 0.57; correlation 0.95. The defensible gains are lower turnover (3.2× vs 5.1×/yr), a smaller
+  max drawdown relative to vol, and a shorter longest drawdown (840 vs 1,047 days). Skew is worse (−0.68 vs −0.43).
+- **By year:** S3 is positive in 12 of 17 years. Its losses are smaller than S1's in each of S1's 4 worst
+  years, and its gains are smaller in the best ones. No single year drives the result.
+- **By asset class:** bonds contribute ~60% of P&L (sleeve Sharpe 0.66); the other classes are 0.15–0.24.
+  The result leans on the 2008–2021 bond rally and the 2022 sell-off (regime dependence).
+- **Factors (Fama-French 3 + momentum):** small but significant loadings. The largest is momentum
+  (β = 0.09, t = 19); market β is 0.035; R² = 0.25. Alpha is 1.2%/yr at 3.1% vol, t = 1.73: not
+  significant at 5%.
+- **Stress:** GFC flat (+0.1% vs SPY −37%); 2022 +5.4% (SPY −18%); loses in the March–June 2009
+  momentum-crash rebound (−3.1%) and the COVID crash (−2.9%). S3 gives up some of S1's crisis gains.
+- **Risk concentration:** vol targeting levers low-vol bonds. SHY reaches 164% of equity and the bond
+  sleeve 192% gross. Average gross exposure is 0.80×, the maximum 2.14×.
+- **Capacity (square-root impact):** net Sharpe 0.49 at $1M, 0.44 at $100M, 0.31 at $1B, and below zero
+  near $10B (gross 0.55). Binding names today are the currency and commodity ETFs (2024 median ADV:
+  FXY $10M, DBC $22M, UUP $22M); in 2008, HYG traded only $3.6M a day.
