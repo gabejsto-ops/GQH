@@ -59,3 +59,11 @@ Points HYPOTHESIS.md left open, fixed here before seeing results:
 - `run_all.py --final` is re-run to apply the corrected *measurement* to the same frozen strategy
   (target weights and net returns verified identical). This is not a second chance at OOS: no
   parameter, rule or universe change was made, and the earlier OOS numbers stay in the log.
+
+## 2026-10-03: After Round 3 holdouts
+
+- **Final strategy: S5 (risk-premium prior) at L = 252**, the pre-registered Round 3 hypothesis. Its pre-registered
+  primary test passed on the new-ETF holdout and narrowly failed on the backcast; both are reported.
+- S3 becomes one of the variants we moved away from. The note's robustness, risk and capacity sections are re-run with
+  S5 as the final strategy on the development sample; the 2024–2026 window is shown but labeled "already seen".
+- No parameter of S5 was changed after any result was seen.

@@ -158,3 +158,23 @@ Pre-registered in HYPOTHESIS.md (Round 3) and coded before running. Excess-of-ca
   long-only −11.0%). Smaller loss in the 2009 rebound (−1.8% vs S1 −5.2%). Skew worse (−0.77).
 - Correlation with S1 0.90 and with long-only 0.51: a genuine blend of the two, as designed.
 - Beats S1 at 2 of 3 lookbacks in-sample (tie at 63d). The pre-registered verdict comes from the holdouts.
+
+## Round 3 holdouts, evaluated once (`python run_all.py --holdout`, log in `results/holdout_run_log.txt`)
+
+Excess-of-cash Sharpe, 5 bps. Primary pre-registered test: S5 vs S1 at L = 252.
+
+| Test set | S5 prior | S1 TSMOM | S3 flat | Long-only | S5 − S1 [95% CI] | Verdict |
+|---|---|---|---|---|---|---|
+| Backcast 2001-01 → 2007-04 (original ETFs as they launch, 5→22) | 0.71 | **0.73** | 0.62 | 0.37 | −0.02 [−0.38, +0.44] | **Fail** (narrowly) |
+| New ETFs 2008-04 → 2026-10 (30 never-used ETFs) | **0.38** | 0.18 | 0.28 | 0.36 | +0.20 [−0.01, +0.40] | **Pass** |
+
+- **Across lookbacks** (63/126/252): S5 beats S1 in 2 of 3 in the backcast (0.50 vs 0.50, 0.38 vs 0.36, 0.71 vs 0.73)
+  and in 2 of 3 on new ETFs (0.22 vs 0.25, 0.34 vs 0.21, 0.38 vs 0.18).
+- **S5 beats the flat-prior S3 in all 6 holdout cases**, and in all 3 in-sample: the prior improves the Bayesian
+  sizing every time it has been tested (9 of 9).
+- **Why the backcast fails:** in the 2002 bear market S1 was short equities and made +13.5%; S5's prior kept it closer
+  to long and it made +1.8%. That is the price of the prior: it gives up some of the largest short-trend wins.
+- Long-only on the new ETFs (0.36) is close to S5 (0.38). S5's drawdown is about half of S1's (−8.8% vs −15.5%), but at
+  lower vol; relative to vol it is only slightly smaller (2.8× vs 3.0×). S5's skew is the most negative of any variant (−1.10).
+- Crash profile on new ETFs (S5 / S1 / long-only): GFC +1.2% / +5.9% / −8.5%; COVID crash −3.5% / −2.2% / −18.2%;
+  2022 +1.5% / +4.5% / −10.0%.
