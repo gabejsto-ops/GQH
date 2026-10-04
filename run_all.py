@@ -8,7 +8,7 @@ import argparse
 
 import pandas as pd
 
-from src.analysis import deflated_sharpe, h1_panel, h1_test, summarize
+from src.analysis import deflated_sharpe, h1_panel, h1_test, h3_test, h5a_test, summarize
 from src.backtest import simulate
 from src.config import (COST_BPS, COST_BPS_STRESS, IS_END, LOOKBACKS, OOS_START, PRIMARY_LOOKBACK,
                         RESULTS_DIR, SIZINGS)
@@ -35,7 +35,7 @@ def main(final: bool) -> None:
                                  "period": period, **summarize(daily.loc[a:b])})
     table = pd.DataFrame(rows)
 
-    # Deflated Sharpe over the 9 trials, in-sample, base cost.
+    # Deflated Sharpe over all strategy trials, in-sample, base cost.
     base = {k: v.loc[:IS_END, "net"] for k, v in daily_by_variant.items() if k[2] == COST_BPS}
     trial_srs = [r.mean() / r.std() for r in base.values()]
     dsr = {k: deflated_sharpe(r, trial_srs) for k, r in base.items()}
@@ -50,14 +50,15 @@ def main(final: bool) -> None:
 
     pd.set_option("display.width", 200, "display.float_format", "{:.3f}".format)
     print(f"Signals: {dates[0].date()} to {dates[-1].date()} ({len(dates)} month-ends)")
-    print(f"Deflated Sharpe hurdle from 9 trials (annualized SR): {next(iter(dsr.values()))[1]:.3f}\n")
+    print(f"Deflated Sharpe hurdle from {len(trial_srs)} trials (annualized SR): {next(iter(dsr.values()))[1]:.3f}\n")
     print(table.drop(columns=["start", "end"]).to_string(index=False))
 
     for period, (a, b) in periods.items():
         panel = h1_panel(opens, closes, feats, dates, PRIMARY_LOOKBACK).loc[a:b]
-        h1 = pd.Series(h1_test(panel), name=f"H1 ({period}, L={PRIMARY_LOOKBACK})")
-        h1.to_csv(RESULTS_DIR / f"h1_{period}_{suffix}.csv")
-        print(f"\n{h1.to_string()}")
+        for name, test in (("h1", h1_test), ("h3", h3_test), ("h5a", h5a_test)):
+            res = pd.Series(test(panel), name=f"{name.upper()} ({period}, L={PRIMARY_LOOKBACK})")
+            res.to_csv(RESULTS_DIR / f"{name}_{period}_{suffix}.csv")
+            print(f"\n{res.name}\n{res.to_string()}")
 
 
 if __name__ == "__main__":

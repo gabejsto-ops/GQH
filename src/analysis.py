@@ -5,6 +5,7 @@ import statsmodels.api as sm
 from scipy import stats
 
 from src.backtest import forward_returns
+from src.config import ER_THRESHOLD
 from src.signals import trailing_return
 
 
@@ -47,9 +48,38 @@ def h1_panel(opens, closes, feats, dates, lookback) -> pd.DataFrame:
         "outcome": outcome.stack(),
         "high_vol": feats["high_vol"].loc[dates].stack().astype(bool),
         "shock": feats["shock"].loc[dates].stack(),
+        "er": feats["er"].loc[dates].stack(),
     }).dropna()
     panel.index.names = ["date", "ticker"]
     return panel
+
+
+def _clustered_ols(df: pd.DataFrame, regressor: pd.Series):
+    X = sm.add_constant(regressor.astype(float))
+    groups = df.index.get_level_values("date").factorize()[0]
+    return sm.OLS(df["outcome"], X).fit(cov_type="cluster", cov_kwds={"groups": groups})
+
+
+def h3_test(panel: pd.DataFrame) -> dict:
+    """Round 2, H3: outcome rises continuously with ER among high-vol asset-months."""
+    hv = panel[panel["high_vol"]]
+    ols = _clustered_ols(hv, hv["er"])
+    return {"n": len(hv), "slope_on_er": ols.params["er"],
+            "clustered_t": ols.tvalues["er"], "clustered_p": ols.pvalues["er"]}
+
+
+def h5a_test(panel: pd.DataFrame) -> dict:
+    """Round 2, H5a: among calm asset-months, efficient (ER > threshold) trend more."""
+    calm = panel[~panel["high_vol"]]
+    efficient = calm["er"] > ER_THRESHOLD
+    eff, ineff = calm.loc[efficient, "outcome"], calm.loc[~efficient, "outcome"]
+    welch = stats.ttest_ind(eff, ineff, equal_var=False)
+    ols = _clustered_ols(calm, efficient.rename("efficient"))
+    return {"n_calm_efficient": len(eff), "n_calm_inefficient": len(ineff),
+            "mean_calm_efficient": eff.mean(), "mean_calm_inefficient": ineff.mean(),
+            "difference": eff.mean() - ineff.mean(), "welch_t": welch.statistic,
+            "welch_p": welch.pvalue, "clustered_t": ols.tvalues["efficient"],
+            "clustered_p": ols.pvalues["efficient"]}
 
 
 def h1_test(panel: pd.DataFrame) -> dict:

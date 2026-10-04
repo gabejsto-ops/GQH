@@ -20,7 +20,7 @@ IS_END = "2024-10-02"
 OOS_START = "2024-10-03"
 
 LOOKBACKS = [63, 126, 252]
-SIZINGS = ["S0", "S1", "S2"]
+SIZINGS = ["S0", "S1", "S2", "S3", "S4"]   # S3, S4 added in Round 2
 PRIMARY_LOOKBACK = 252
 
 TARGET_VOL = 0.10          # portfolio-level budget, split equally across assets

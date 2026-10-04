@@ -1,6 +1,7 @@
 """Signals and state variables. Every function uses data up to and including each row's date only."""
 import numpy as np
 import pandas as pd
+from scipy.stats import norm
 
 from src.config import (ER_THRESHOLD, ER_WINDOW, MAX_ABS_WEIGHT, STATE_PCTL, STATE_VOL,
                         TARGET_VOL, VOL_LONG, VOL_SHORT)
@@ -14,6 +15,12 @@ def month_end_dates(index: pd.DatetimeIndex) -> pd.DatetimeIndex:
 
 def trailing_return(closes: pd.DataFrame, lookback: int) -> pd.DataFrame:
     return closes / closes.shift(lookback) - 1
+
+
+def trend_z(closes: pd.DataFrame, lookback: int) -> pd.DataFrame:
+    """t-stat of the mean daily return over the lookback: mean / std * sqrt(L)."""
+    r = closes.pct_change()
+    return r.rolling(lookback).mean() / r.rolling(lookback).std() * np.sqrt(lookback)
 
 
 def realized_vol(closes: pd.DataFrame, window: int) -> pd.DataFrame:
@@ -54,12 +61,20 @@ def target_weights(closes: pd.DataFrame, feats: dict, lookback: int, sizing: str
     sign = np.sign(trailing_return(closes, lookback)).loc[dates]
     if sizing == "S0":
         w = sign / n
-    elif sizing in ("S1", "S2"):
+    elif sizing in ("S1", "S2", "S3", "S4"):
         vol = feats["vol_short"].loc[dates]
         if sizing == "S2":
             # On information shocks, size with long-run vol: do not de-risk.
             vol = vol.where(~feats["shock"].loc[dates], feats["vol_long"].loc[dates])
         w = sign * (TARGET_VOL / n) / vol
+        if sizing == "S3":
+            # Bayesian confidence: posterior P(drift > 0) under a flat prior, mapped to [-1, 1].
+            # (2*Phi(z) - 1) already carries the sign of z, so drop the separate sign.
+            w = w.abs() * (2 * norm.cdf(trend_z(closes, lookback).loc[dates]) - 1)
+        if sizing == "S4":
+            # Calm, efficient trends: double the bet.
+            calm_efficient = (feats["high_vol"].loc[dates] == 0) & (feats["er"].loc[dates] > ER_THRESHOLD)
+            w = w.where(~calm_efficient, 2 * w)
     else:
         raise ValueError(sizing)
     return w.clip(-MAX_ABS_WEIGHT, MAX_ABS_WEIGHT)
