@@ -17,6 +17,21 @@ prior (the asset class's long-run risk premium) with the evidence (its trailing 
 the posterior probability that the asset's drift is positive. Premium assets stay long unless the trend is clearly negative;
 weak trends get small bets; strong trends get full ones.
 
+## What makes it unique
+We build on two well-known ideas and combine them in a way that is, to our knowledge, not the standard formulation:
+- **From time-series momentum** (Moskowitz, Ooi & Pedersen 2012) we take the 12-month trend, but we treat it as noisy *evidence*
+  with a known standard error, not as a buy/sell decision.
+- **From Black–Litterman** (1992) we take the idea of using equilibrium risk premia as a Bayesian prior. Black–Litterman blends
+  premia with an investor's views across a whole portfolio; we blend them per asset, inside trend-following, and let the trend's
+  own sampling noise decide how much it counts.
+- **The result is one rule with a single interpretable dial.** With a weak prior it becomes trend-following; with a strong prior it
+  becomes long-only in assets that earn a premium. We set the dial (prior worth one lookback window of data) before testing and
+  never searched over it.
+- **Asset classes are treated differently for an economic reason.** Commodities and currencies, which have no reliable premium,
+  are traded on trend alone; equities, bonds and REITs keep a long bias that only a clear downtrend overrides.
+- Sizing by trend strength alone (our flat-prior version, similar to t-stat trend signals in Baltas & Kosowski 2013) was a step
+  we tested and improved on; the prior is the new part.
+
 ## How we built it
 - Three rounds of pre-registered hypotheses in git, 18 strategy variants, every result reported, including the failures.
 - Public data only (Yahoo Finance, Ken French Library, FRED); anyone can reproduce results with two commands.

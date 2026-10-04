@@ -29,6 +29,8 @@
   .page-break { break-before: page; }
   .refs p { text-align: left; margin-bottom: 2.5pt; padding-left: 14pt; text-indent: -14pt; }
   code { font-size: 10.5pt; }
+  table.wrap td, table.wrap th { white-space: normal; vertical-align: top; }
+  table.wrap td:first-child { white-space: nowrap; }
 </style>
 </head>
 <body>
@@ -45,7 +47,7 @@ asset's risk premium, the <b>evidence</b> is its trend, and the position is size
 that the drift is positive (S5). With no tuned parameters (the prior is fixed from theory), S5 earns an excess-of-cash Sharpe of <b>0.45 vs
 0.37</b> for standard TSMOM on 23 ETFs (2008–2024). It trades less, keeps TSMOM's crash protection, and
 beats both TSMOM and long-only on <b>30 ETFs we had never touched</b> (0.38 vs 0.18 and 0.36). It is the only strategy
-we tested that beats long-only in all four test sets. It reached this point after 15 variants that did not work,
+we tested that beats long-only in all four test sets. What is new is the combination of a Black–Litterman-style premium prior with per-asset trend evidence (§2). We reached it after 15 variants that did not work,
 all pre-registered in git and reported here. The edge is modest and not statistically proven; §5 says exactly
 how far the evidence goes.</p>
 
@@ -63,6 +65,25 @@ equally. The posterior is z = (m<sub>0</sub> + ŝ) / (√2·se) and the position
 The effect: a premium asset stays long unless its trend is clearly negative; a weak trend gets a small bet; a strong
 trend gets a full one. <b>Predictions</b> (committed <code>b1c8d78</code> before any code): S5 beats standard TSMOM (S1) on
 held-out data, with lower turnover and most of TSMOM's crash protection. <b>Fails if</b> S5's holdout Sharpe ≤ S1's.</p>
+
+<h3>What we borrowed, and what is new</h3>
+<table class="wrap">
+<thead><tr><th>Component</th><th style="text-align:left">Prior work we build on</th><th style="text-align:left">Our extension</th></tr></thead>
+<tbody>
+<tr><td>Trend signal</td><td style="text-align:left">TSMOM: sign of the 12-month return (Moskowitz et al. 2012)</td><td style="text-align:left">Used as <i>evidence</i> with a known noise level, not as the decision</td></tr>
+<tr><td>Trend-strength sizing</td><td style="text-align:left">Signals scaled by trend significance (e.g. Baltas &amp; Kosowski 2013)</td><td style="text-align:left">Our flat-prior S3; tested, then improved on</td></tr>
+<tr><td>Premium as a prior</td><td style="text-align:left">Black–Litterman: equilibrium premia as the portfolio prior (1992)</td><td style="text-align:left">Applied per asset <i>inside</i> TSMOM, by asset class</td></tr>
+<tr><td>Prior strength</td><td style="text-align:left">Black–Litterman's τ, a judgment call</td><td style="text-align:left">Fixed by rule: one lookback window of data</td></tr>
+<tr><td>Vol targeting</td><td style="text-align:left">Moskowitz et al. 2012; Barroso &amp; Santa-Clara 2015</td><td style="text-align:left">Unchanged</td></tr>
+</tbody></table>
+<p><b>Why this is more than a parameter tweak.</b> S5 is a single rule that contains the two classic strategies as limits. With a very
+weak prior it becomes trend-strength TSMOM; with a very strong prior it becomes long-only in premium assets and flat in the rest.
+Prior strength is therefore one interpretable dial between "follow the trend" and "harvest the premium". We set the dial at
+equal weight <i>before</i> testing; we did not search over it. The asset-class prior also lets one rule treat assets differently for an economic
+reason: commodities and currencies, which have no premium, are traded on trend alone, while equities, bonds and REITs keep a long bias
+that only a clear downtrend overrides. To our knowledge this premium-prior formulation of TSMOM sizing is not the standard one in the
+literature; the methodological contribution is the test design (pre-registered rounds, new untouched holdouts after the original one was spent,
+and an audit that removed T-bill carry from the headline).</p>
 
 <h2>3. Data &amp; Universe</h2>
 <p><b>Development universe (fixed by rule):</b> the most liquid US ETF per distinct exposure with inception before mid-2007:
@@ -176,7 +197,7 @@ failure mode; we do not hedge them.</p>
 <p>Monthly trades in ETFs whose 2024 median daily dollar volume ranges from about $10M (FXY) to billions (SPY, HYG, LQD). Cost per
 trade = 5 bps + square-root impact σ<sub>daily</sub>·√(trade $ / ADV $), using the trailing 20-day ADV known before the trade. S5's development
 Sharpe (0.51 before costs) is <b>0.44 at $1M, 0.40 at $100M, 0.29 at $1B and ≈ −0.05 at $10B</b>; over 2024–26 it is 0.41 at $100M.
-S5 trades half as much as S1, so it degrades more slowly. At $1B the median trade is 1.1% of ADV, but the largest trades in thin names
+S5 trades less than S1 (2.7× vs 5.1× a year at its own risk level), so it degrades more slowly. At $1B the median trade is 1.1% of ADV, but the largest trades in thin names
 (HYG at $3.6M per day in 2008; FXY, DBC and UUP at $10–22M today) exceed daily volume from about $100M and would need splitting across days.
 <b>Practical capacity: about $100M–$500M</b>, set by the currency and commodity ETFs. Adjusted prices understate early dollar volume, and
 ETF creation/redemption adds liquidity our ADV measure misses, so both biases make this estimate conservative.</p>
@@ -196,7 +217,9 @@ fixing it; (3) backtest the class caps as a separately pre-registered trial; (4)
 <div class="refs">
 <p>Bailey, D. &amp; López de Prado, M. (2014). The Deflated Sharpe Ratio. <i>Journal of Portfolio Management</i> 40(5).</p>
 <p>Barberis, N., Shleifer, A. &amp; Vishny, R. (1998). A Model of Investor Sentiment. <i>Journal of Financial Economics</i> 49(3).</p>
+<p>Baltas, A.-N. &amp; Kosowski, R. (2013). Momentum Strategies in Futures Markets and Trend-Following Funds. Working paper, SSRN.</p>
 <p>Barroso, P. &amp; Santa-Clara, P. (2015). Momentum Has Its Moments. <i>Journal of Financial Economics</i> 116(1).</p>
+<p>Black, F. &amp; Litterman, R. (1992). Global Portfolio Optimization. <i>Financial Analysts Journal</i> 48(5).</p>
 <p>Daniel, K. &amp; Moskowitz, T. (2016). Momentum Crashes. <i>Journal of Financial Economics</i> 122(2).</p>
 <p>Edwards, W. (1968). Conservatism in Human Information Processing. In <i>Formal Representation of Human Judgment</i>, Wiley.</p>
 <p>Harvey, C., Liu, Y. &amp; Zhu, H. (2016). …and the Cross-Section of Expected Returns. <i>Review of Financial Studies</i> 29(1).</p>
