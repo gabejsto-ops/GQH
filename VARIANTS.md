@@ -93,3 +93,21 @@ is disclosed, but it was not used for selection. Tables: `results/robust_*_IS_is
   in-sample (p = 0.81, n = 1,092). H1 has only 5 shock months OOS. H5a: no effect (p = 0.86). Given the
   in-sample failure, the small sample, and the number of tests run, we treat the H3 OOS result as
   probably chance or regime-specific. We do not claim it.
+
+## Post-OOS audit: cash carry inflates the reported Sharpe (correction, no strategy change)
+
+The engine credits each ETF's total return (including the interest that bond ETFs such as SHY pay)
+but neither pays interest on idle cash nor charges financing on leverage. The reported return
+therefore includes roughly rf × net exposure. Measured over cash, as in the TSMOM literature
+(Σ wᵢ(rᵢ − rf), with rf from the Ken French library; OOS runs only to 2026-08-31, the last rf date):
+
+| Sharpe | Reported | Excess of cash |
+|---|---|---|
+| S3 IS | 0.49 | 0.39 |
+| S3 OOS | 1.20 | **0.23** |
+| S1 IS | 0.45 | 0.38 |
+| S1 OOS | 1.26 | **0.35** |
+
+OOS, T-bills paid ~4.5%/yr and S3 averaged ~0.8× net long, so 3.6 points of S3's 4.5%/yr OOS return were
+cash carry. **The OOS improvement over in-sample is an artifact of high interest rates.** Measured over
+cash, S3 is weaker than S1 OOS. All headline numbers in the note will be reported in excess of cash.
