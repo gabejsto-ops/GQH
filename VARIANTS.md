@@ -111,3 +111,32 @@ therefore includes roughly rf × net exposure. Measured over cash, as in the TSM
 OOS, T-bills paid ~4.5%/yr and S3 averaged ~0.8× net long, so 3.6 points of S3's 4.5%/yr OOS return were
 cash carry. **The OOS improvement over in-sample is an artifact of high interest rates.** Measured over
 cash, S3 is weaker than S1 OOS. All headline numbers in the note will be reported in excess of cash.
+
+## Corrected headline results (excess of cash) and the final teardown
+
+Net of 5 bps, in excess of 3-month T-bills, L = 252. 95% intervals from a 21-day block bootstrap
+(2,000 draws). Tables: `results/robust_*_final.csv`.
+
+| Sharpe [95% CI] | In-sample 2008–2024 | Out-of-sample 2024–2026 |
+|---|---|---|
+| S3 (final) | 0.39 [−0.09, 0.87] | 0.21 [−0.72, 1.58] |
+| S1 (standard TSMOM) | 0.37 [−0.10, 0.84] | 0.25 [−0.69, 1.65] |
+| Long-only, same vol targeting, no signal | 0.33 [−0.19, 0.85] | 0.36 [−0.45, 1.86] |
+| S3 − S1 | +0.02 [−0.14, +0.18] | −0.04 [−0.26, +0.15] |
+
+- **No strategy's Sharpe is distinguishable from zero** at 95%, in or out of sample. The best IS
+  Deflated Sharpe (excess) is 0.89 (126d S3/S4); none passes 0.95.
+- **The trend signal barely beats just being long.** In-sample S1 0.37 vs long-only 0.33; out of sample,
+  long-only did better (0.36 vs 0.25). Over 2008–2026, most of the Sharpe comes from holding a
+  vol-targeted, diversified ETF portfolio, not from timing it.
+- **Bayesian sizing adds nothing measurable.** At matched 10% vol: turnover −10% (10.5× vs 11.6×/yr),
+  max drawdown −22% vs −25% in-sample; OOS the excess Sharpe is slightly lower than S1.
+- **Where the trend signal does earn its keep: crises.** Excess returns, S3 / S1 / long-only:
+  GFC 0.0% / +2.4% / −5.9%; COVID crash −3.0% / −2.3% / −12.8%; 2022 +5.9% / +9.9% / −11.0%. It pays
+  for that in rebounds: March–June 2009 −3.1% / −5.2% / +4.6%. This is the crisis-diversification
+  profile documented for trend-following, at a similar long-run Sharpe to long-only.
+- **Regime dependence confirmed:** the bond sleeve had a Sharpe of 0.52 in-sample and −0.93 out of sample.
+  OOS profits came from commodities (1.32) and equities (0.66).
+- **Capacity (excess):** S3 Sharpe 0.39 → 0.33 at $100M → 0.20 at $1B → negative by $10B.
+- **H3 OOS** remains significant (p = 0.006) after the correction, and in-sample remains null
+  (p = 0.82). Treated as probably chance or regime-specific; not claimed.
