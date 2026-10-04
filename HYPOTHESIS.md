@@ -117,3 +117,49 @@ ones (Welch + month-clustered test, L = 252); (b) S4 net Sharpe > S1.
 
 **Trial count after Round 2:** 9 + 3 + 3 = 15 strategy variants (Deflated Sharpe uses N = 15),
 plus mechanism tests H1, H3, H5a.
+
+---
+
+# Round 3: a risk-premium prior (pre-registered after the 2024–2026 OOS was seen; committed before any code)
+
+**Why a new round.** Rounds 1–2 showed (in-sample) that vol-targeted long-only earns about as much as TSMOM, and that
+TSMOM's distinct value is crash protection (2008, 2020, 2022). S3 used a *flat* prior and so ignored the most
+robust fact in asset pricing: assets with a risk premium drift up on average. A Bayesian should start from that.
+
+## H6: risk-premium prior (sizing S5, 3 trials: L ∈ {63, 126, 252}; trial count becomes 18)
+
+Work in annualized Sharpe units on returns in excess of cash. For each asset at each month-end:
+
+- **Prior:** expected Sharpe m₀ by asset class, set a priori from the long-run risk-premium literature (Ilmanen 2011):
+  **equities 0.3, bonds 0.3, real estate 0.3, commodities 0, currencies 0** (no reliable spot premium; roll costs).
+  Prior strength: worth one lookback window of data, so the prior s.d. equals the data's standard error
+  se = √(252 / L). Theory and evidence get equal weight; this is fixed, not tuned.
+- **Evidence:** ŝ = trailing L-day mean excess return / s.d. × √252.
+- **Posterior:** mean = (m₀ + ŝ) / 2, s.d. = se / √2, so P(drift > 0) = Φ(z₅) with z₅ = (m₀ + ŝ) / (√2 · se).
+- **Position:** S5 = |S1 weight| × (2Φ(z₅) − 1). With m₀ = 0 this is S3 with a different (excess-return) z, so
+  S3 is the flat-prior special case.
+
+Effect: an asset with a premium stays long unless its trend is clearly negative (at L = 252, flip only if ŝ < −0.3);
+assets without a premium are traded on trend alone.
+
+**Predicts:** S5 has a higher excess Sharpe than S1 (original TSMOM) and S3, keeps most of TSMOM's crash protection,
+and beats long-only. **Primary test: S5 vs S1 at L = 252 on the holdout sets below.** **Fails if** S5's holdout excess
+Sharpe ≤ S1's. Secondary: S5 vs long-only and S3; crash-window behavior.
+
+## Holdout design (the 2024–2026 window is spent; it is reported but labeled "already seen")
+
+Evaluated **once**, after in-sample development, with `run_all.py --holdout`; the loader refuses these data otherwise.
+
+1. **Backcast (time holdout):** dates **before 2007-04-11**, never loaded in any analysis. The universe is the original
+   23 ETFs, each entering once it has a price history; the portfolio's vol budget is split across the assets available
+   on each date. Evaluation runs from the first month-end with a 252-day history (at least 2 assets) to 2007-04-10.
+2. **New ETFs (asset holdout):** a universe never used, chosen by the same rule (most liquid US ETF per distinct
+   exposure, inception before mid-2007, no leveraged/inverse products), evaluated over 2008-06 → 2026-10:
+   - Equities (country): EWG, EWU, EWC, EWA, EWY, EWT, EWH, EWW, EWQ, EWL
+   - Equities (US sectors): XLE, XLF, XLK, XLU, XLV, XLP, XLI, XLB, XLY
+   - Bonds: AGG, MBB, TLH, IEI
+   - Commodities: DBB, DBE, DBP
+   - Currencies: FXB, FXC, FXA, FXF
+   Any ticker without clean data from mid-2007 is dropped by rule before any returns are computed.
+
+All other settings (costs, timing, vol targeting, cap) are unchanged.
