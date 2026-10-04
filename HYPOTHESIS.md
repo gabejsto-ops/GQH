@@ -79,3 +79,41 @@ sample. We will report the result either way.
 Lookback L ∈ {63, 126, 252} days × sizing ∈ {S0, S1, S2}. Primary specification: L = 252, S2 vs S1.
 The ER window (21 days), threshold (0.44) and vol-state definition are fixed and are not varied.
 Results reported for all 9 variants, with a Deflated Sharpe Ratio for N = 9.
+
+---
+
+# Round 2 (added after seeing Round 1 in-sample results; committed before running)
+
+Round 1: H2 failed (S2 ≈ S1 because shocks are only 2.3% of asset-months) and H1 pointed the
+predicted way but was not significant. These follow-ups were chosen *after* seeing those results,
+so they are disclosed as post-hoc and every trial is counted. Thresholds and windows are unchanged.
+
+## H3: continuous mechanism test (1 test, no new strategy)
+
+The 0.44 cutoff in H1 discards information. If underreaction to information drives trends, the
+next-month TSMOM outcome should rise *continuously* with the efficiency ratio.
+**Test:** among high-vol asset-months (L = 252), regress the risk-scaled outcome on ER, with SEs
+clustered by month. **Fails if** the slope is ≤ 0 or not significant.
+
+## H4: trade like a Bayesian (sizing S3, 3 trials: L ∈ {63, 126, 252})
+
+Conservative investors react late; a Bayesian keeps updating and bets in proportion to how sure it
+is. With a flat prior, the posterior probability that an asset's drift is positive after L days is
+Φ(z), where z = mean daily return / std × √L (the t-stat of the trend). A Bayesian therefore
+sizes by confidence, not by the sign alone: **S3 = S1 × (2Φ(z) − 1)**, which runs from −1 to +1.
+Weak, noisy trends near zero get small bets; clear trends get full ones.
+**Predicts:** higher net Sharpe **and** lower turnover than S1 (fewer whipsaws on weak signals).
+**Fails if** S3's net Sharpe ≤ S1's at the same lookback.
+
+## H5: calm trends (sizing S4, 3 trials: L ∈ {63, 126, 252})
+
+The mirror image of Round 1. In calm markets (not high-vol), news spreads gradually (Hong & Stein
+1999, slow information diffusion), so a steady, efficient trend is the clearest sign of information
+still being absorbed. **S4 = S1, with weight × 2 in calm months where ER > 0.44** (still subject to the
+2× per-asset cap). The factor 2 is set a priori as the mirror of "do not de-risk"; it is not tuned.
+**Predicts:** (a) among calm asset-months, efficient ones have a higher TSMOM outcome than inefficient
+ones (Welch + month-clustered test, L = 252); (b) S4 net Sharpe > S1.
+**Fails if** (a) is ≤ 0 / not significant, or S4 ≤ S1.
+
+**Trial count after Round 2:** 9 + 3 + 3 = 15 strategy variants (Deflated Sharpe uses N = 15),
+plus mechanism tests H1, H3, H5a.
