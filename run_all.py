@@ -12,6 +12,7 @@ from src.analysis import deflated_sharpe, h1_panel, h1_test, h3_test, h5a_test, 
 from src.backtest import simulate
 from src.config import (COST_BPS, COST_BPS_STRESS, IS_END, LOOKBACKS, OOS_START, PRIMARY_LOOKBACK,
                         RESULTS_DIR, SIZINGS)
+from src import robustness
 from src.data import load_panel
 from src.signals import common_signal_dates, features, target_weights
 
@@ -59,6 +60,13 @@ def main(final: bool) -> None:
             res = pd.Series(test(panel), name=f"{name.upper()} ({period}, L={PRIMARY_LOOKBACK})")
             res.to_csv(RESULTS_DIR / f"{name}_{period}_{suffix}.csv")
             print(f"\n{res.name}\n{res.to_string()}")
+
+    weights_fn = lambda lookback, sizing: target_weights(closes, feats, lookback, sizing, dates)
+    for period, bounds in periods.items():
+        tables = robustness.run(opens, closes, weights_fn, bounds, f"{period}_{suffix}", RESULTS_DIR)
+        print(f"\n===== Robustness: {period} (final S3 vs benchmark S1, L={PRIMARY_LOOKBACK}) =====")
+        for name, table in tables.items():
+            print(f"\n--- {name} ---\n{table.to_string()}")
 
 
 if __name__ == "__main__":
