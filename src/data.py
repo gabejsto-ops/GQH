@@ -19,8 +19,11 @@ def load_holdout(which: str) -> tuple[pd.DataFrame, pd.DataFrame]:
         df = pd.read_csv(folder / f"{t}.csv", index_col="Date", parse_dates=True)
         opens[t], closes[t] = df["Open"], df["Close"]
     opens, closes = pd.DataFrame(opens).loc[start:end], pd.DataFrame(closes).loc[start:end]
+    # ETFs that had not launched by the end of the window (e.g. HYG in the backcast) are excluded.
+    live_tickers = [t for t in tickers if closes[t].first_valid_index() is not None]
+    opens, closes = opens[live_tickers], closes[live_tickers]
     # After inception there must be no gaps; before inception NaN is expected.
-    for t in tickers:
+    for t in live_tickers:
         live = closes[t].loc[closes[t].first_valid_index():]
         if live.isna().any() or opens[t].loc[live.index].isna().any():
             raise ValueError(f"gap in {t} after inception")
