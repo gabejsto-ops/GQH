@@ -76,9 +76,13 @@ def main(final: bool, holdout: bool = False) -> None:
     weights_fn = lambda lookback, sizing: target_weights(closes, feats, lookback, sizing, dates, rf, ASSET_CLASS)
     for period, bounds in periods.items():
         tables = robustness.run(opens, closes, rf, weights_fn, bounds, f"{period}_{suffix}", RESULTS_DIR)
-        print(f"\n===== Robustness: {period} (final S3 vs benchmark S1, L={PRIMARY_LOOKBACK}) =====")
+        print(f"\n===== Robustness: {period} (final {robustness.FINAL} vs benchmark S1, L={PRIMARY_LOOKBACK}) =====")
         for name, table in tables.items():
             print(f"\n--- {name} ---\n{table.to_string()}")
+
+    if final:
+        figures.make_all(opens, closes, rf, weights_fn)
+        print(f"\nFigures written to {figures.FIG_DIR}")
 
 
 if __name__ == "__main__":

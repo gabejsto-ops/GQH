@@ -1,4 +1,5 @@
-"""Figures for the quant note. Written to note/figures/ by `python run_all.py --final`."""
+"""Figures for the quant note. Written to note/figures/ by `python run_all.py --final`
+(figure 2 also reads the holdout tables written by `python run_all.py --holdout`)."""
 import matplotlib
 
 matplotlib.use("Agg")
@@ -11,8 +12,10 @@ from src.config import COST_BPS, IS_END, OOS_START, PRIMARY_LOOKBACK, RESULTS_DI
 
 FIG_DIR = ROOT / "note" / "figures"
 # Reference categorical palette, slots 1-3 (validated all-pairs); text in ink tokens.
-COLORS = {"S3": "#2a78d6", "S1": "#eb6834", "LongOnly": "#1baf7a"}
-NAMES = {"S3": "S3 Bayesian (final)", "S1": "S1 standard TSMOM", "LongOnly": "Long-only, no signal"}
+COLORS = {"S5": "#2a78d6", "S1": "#eb6834", "LongOnly": "#1baf7a"}
+NAMES = {"S5": "S5 risk-premium prior (ours)", "S1": "S1 standard TSMOM", "LongOnly": "Long-only, no signal"}
+SHORT = {"S5": "S5 prior (ours)", "S1": "S1 TSMOM", "LongOnly": "Long-only"}
+ORDER = ("S5", "S1", "LongOnly")
 INK, INK_2, GRID, OOS_FILL = "#0b0b0b", "#52514e", "#e4e3df", "#f1f0ec"
 
 plt.rcParams.update({
@@ -26,15 +29,15 @@ plt.rcParams.update({
 
 def equity_curves(opens, closes, rf, weights_fn):
     """Growth of $1 in excess of cash, each scaled to 10% vol using in-sample vol only."""
-    w = {s: weights_fn(PRIMARY_LOOKBACK, s) for s in ("S1", "S3")}
+    w = {s: weights_fn(PRIMARY_LOOKBACK, s) for s in ("S1", "S5")}
     w["LongOnly"] = w["S1"].abs()
-    fig, ax = plt.subplots(figsize=(6.8, 2.5))
+    fig, ax = plt.subplots(figsize=(6.8, 2.4))
     end_values = {}
-    for s in ("LongOnly", "S1", "S3"):
+    for s in ("LongOnly", "S1", "S5"):
         r = simulate(opens, closes, w[s], COST_BPS, rf=rf)["excess"]
         k = 0.10 / (r.loc[:IS_END].std() * np.sqrt(252))
         wealth = (1 + k * r).cumprod()
-        ax.plot(wealth.index, wealth, color=COLORS[s], lw=1.4 if s == "S3" else 1.1, label=NAMES[s])
+        ax.plot(wealth.index, wealth, color=COLORS[s], lw=1.4 if s == "S5" else 1.1, label=NAMES[s])
         end_values[s] = wealth
     ax.axvspan(pd.Timestamp(OOS_START), wealth.index[-1], color=OOS_FILL, zorder=0)
     ax.set_yscale("log")
@@ -44,43 +47,56 @@ def equity_curves(opens, closes, rf, weights_fn):
     ax.set_ylabel("Growth of $1 over cash")
     ax.set_xlim(wealth.index[0], wealth.index[-1] + pd.Timedelta(days=900))
     ax.text(pd.Timestamp(OOS_START) + pd.Timedelta(days=20), ax.get_ylim()[0] * 1.03,
-            "out-of-sample\n(run once)", va="bottom", ha="left", color=INK_2, fontsize=7)
+            "2024–26\n(already seen)", va="bottom", ha="left", color=INK_2, fontsize=7)
     # Direct labels at line ends, spread by rank so they never collide.
     order = sorted(end_values, key=lambda k: end_values[k].iloc[-1], reverse=True)
     for rank, s in enumerate(order):
         wealth = end_values[s]
-        ax.annotate(NAMES[s].split(" (")[0], (wealth.index[-1], wealth.iloc[-1]),
-                    xytext=(5, 9 - 9 * rank), textcoords="offset points",
-                    color=INK, fontsize=7.5, va="center")
+        ax.annotate(SHORT[s], (wealth.index[-1], wealth.iloc[-1]), xytext=(5, 9 - 9 * rank),
+                    textcoords="offset points", color=INK, fontsize=7.5, va="center")
     ax.legend(loc="upper left", ncol=1, fontsize=7.5, handlelength=1.6)
     fig.savefig(FIG_DIR / "fig1_equity.png")
     plt.close(fig)
 
 
-def sharpe_intervals():
-    """Dot-and-whisker: excess Sharpe with 95% bootstrap CI; hollow marker = naive (incl. cash carry)."""
-    fig, axes = plt.subplots(1, 2, figsize=(6.8, 1.9), sharex=True)
-    for ax, period in zip(axes, ("IS", "OOS")):
+def _panel_data():
+    """(title, {strategy: (sharpe, lo, hi, naive)}) for each of the four test sets."""
+    panels = []
+    for period, title in (("IS", "Development\n2008–2024"), ("OOS", "2024–2026\n(already seen)")):
         boot = pd.read_csv(RESULTS_DIR / f"robust_bootstrap_sharpe_{period}_final.csv", index_col=0)
         summ = pd.read_csv(RESULTS_DIR / f"robust_summary_{period}_final.csv", index_col=0)
-        for i, s in enumerate(("S3", "S1", "LongOnly")):
+        panels.append((title, {s: (*boot.loc[s, ["sharpe", "ci_low", "ci_high"]],
+                                   float(summ.loc["sharpe_incl_cash_carry", s])) for s in ORDER}))
+    for which, title in (("backcast", "Holdout: backcast\n2001–2007"), ("new", "Holdout: 30 new ETFs\n2008–2026")):
+        boot = pd.read_csv(RESULTS_DIR / f"holdout_{which}_bootstrap_sharpe.csv", index_col=0)
+        var = pd.read_csv(RESULTS_DIR / f"holdout_{which}_variants.csv", index_col=0)
+        var = var[(var.lookback == PRIMARY_LOOKBACK) & (var.cost_bps == COST_BPS)].set_index("sizing")
+        panels.append((title, {s: (*boot.loc[s, ["sharpe", "ci_low", "ci_high"]],
+                                   float(var.loc[s, "sharpe_incl_cash_carry"])) for s in ORDER}))
+    return panels
+
+
+def sharpe_intervals():
+    """Dot-and-whisker per test set: excess Sharpe with 95% bootstrap CI; hollow = naive incl. cash carry."""
+    panels = _panel_data()
+    fig, axes = plt.subplots(1, 4, figsize=(6.8, 1.9), sharex=True, sharey=True)
+    for ax, (title, vals) in zip(axes, panels):
+        for i, s in enumerate(ORDER):
             y = 2 - i
-            lo, hi, pt = boot.loc[s, ["ci_low", "ci_high", "sharpe"]]
-            naive = float(summ.loc["sharpe_incl_cash_carry", s])
-            ax.plot([lo, hi], [y, y], color=COLORS[s], lw=1.6, solid_capstyle="round")
-            ax.plot(pt, y, "o", ms=6, color=COLORS[s], mec="white", mew=1.2, zorder=3)
-            ax.plot(naive, y, "o", ms=6, mfc="white", mec=COLORS[s], mew=1.3, zorder=3)
-            ax.text(pt, y + 0.28, f"{pt:.2f}", ha="center", color=INK, fontsize=7.5)
+            pt, lo, hi, naive = vals[s]
+            ax.plot([lo, hi], [y, y], color=COLORS[s], lw=1.5, solid_capstyle="round")
+            ax.plot(naive, y, "o", ms=4.5, mfc="white", mec=COLORS[s], mew=1.1, zorder=3)
+            ax.plot(pt, y, "o", ms=5, color=COLORS[s], mec="white", mew=1.0, zorder=4)
+            ax.text(pt, y + 0.3, f"{pt:.2f}", ha="center", color=INK, fontsize=7)
         ax.axvline(0, color=INK_2, lw=0.8)
-        ax.set_yticks([2, 1, 0], [NAMES[s].split(" (")[0] for s in ("S3", "S1", "LongOnly")])
-        ax.set_ylim(-0.6, 2.7)
+        ax.set_title(title, fontsize=7.5, color=INK, loc="left")
         ax.grid(axis="y", visible=False)
-        ax.set_title({"IS": "In-sample 2008–2024", "OOS": "Out-of-sample 2024–2026"}[period],
-                     fontsize=8.5, color=INK, loc="left")
-    axes[1].tick_params(labelleft=False)
-    for ax in axes:
-        ax.set_xlabel("Annualized Sharpe")
-    fig.text(0.0, -0.2,"●  excess of cash, 95% block-bootstrap CI     ○  naive Sharpe incl. T-bill carry",
+        ax.set_ylim(-0.6, 2.75)
+        ax.set_xlim(-0.8, 1.9)
+        ax.set_xticks([0, 1.0])
+    axes[0].set_yticks([2, 1, 0], [SHORT[s] for s in ORDER])
+    fig.supxlabel("Annualized Sharpe over cash, net of 5 bps (L = 252)", fontsize=8, color=INK_2, y=-0.06)
+    fig.text(0.0, -0.17, "●  excess of cash, 95% block-bootstrap CI     ○  naive Sharpe incl. T-bill carry",
              color=INK_2, fontsize=7.5)
     fig.savefig(FIG_DIR / "fig2_sharpe_ci.png")
     plt.close(fig)
@@ -90,12 +106,12 @@ def lookback_plateau():
     fig, axes = plt.subplots(1, 2, figsize=(6.8, 1.7), sharey=True)
     for ax, period in zip(axes, ("IS", "OOS")):
         sweep = pd.read_csv(RESULTS_DIR / f"robust_lookback_sweep_{period}_final.csv", index_col=0)
-        for s in ("S1", "S3"):
-            ax.plot(sweep.index, sweep[s], color=COLORS[s], lw=1.4, marker="o", ms=3.5,
-                    label=NAMES[s].split(" (")[0])
+        for s in ("S1", "S5"):
+            ax.plot(sweep.index, sweep[s], color=COLORS[s], lw=1.4, marker="o", ms=3.5, label=SHORT[s])
         ax.axvline(PRIMARY_LOOKBACK, color=INK_2, lw=0.8, ls=":")
         ax.axhline(0, color=INK_2, lw=0.8)
-        ax.set_title({"IS": "In-sample", "OOS": "Out-of-sample"}[period], fontsize=8.5, color=INK, loc="left")
+        ax.set_title({"IS": "Development 2008–2024", "OOS": "2024–2026 (already seen)"}[period],
+                     fontsize=8.5, color=INK, loc="left")
     fig.supxlabel("Lookback (trading days); dotted line = pre-registered 252",
                   fontsize=8.5, color=INK_2, y=-0.14)
     axes[0].set_ylabel("Excess Sharpe")

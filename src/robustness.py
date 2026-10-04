@@ -1,4 +1,4 @@
-"""Robustness checks on the fixed final specification (S3, L = 252) and its benchmark (S1, L = 252).
+"""Robustness checks on the final specification (S5, L = 252) and its benchmark (S1, L = 252).
 
 These are diagnostics, not new trials: nothing here is used to change the strategy.
 All returns are in excess of cash (3-month T-bill), see backtest.simulate.
@@ -11,7 +11,7 @@ from src.analysis import bootstrap_sharpe, summarize
 from src.backtest import simulate
 from src.config import ASSET_CLASS, COST_BPS, PRIMARY_LOOKBACK, RAW_DIR, TICKERS
 
-FINAL, BENCH, LONG_ONLY = "S3", "S1", "LongOnly"
+FINAL, BENCH, LONG_ONLY = "S5", "S1", "LongOnly"   # S3 was final before Round 3
 SWEEP = [21, 42, 63, 84, 105, 126, 168, 210, 252]
 AUM_GRID = [1e6, 1e7, 1e8, 1e9, 1e10, 1e11]
 MATCHED_VOL = 0.10
