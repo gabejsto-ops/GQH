@@ -34,3 +34,24 @@ ER_THRESHOLD = 0.44        # 2x the random-walk level 1/sqrt(21)
 
 COST_BPS = 5.0
 COST_BPS_STRESS = 10.0
+
+# ---- Round 3 (see HYPOTHESIS.md) ----
+SIZINGS = SIZINGS + ["S5"]
+# Prior expected Sharpe (annualized, over cash) by asset class, set a priori (Ilmanen 2011).
+PRIOR_SHARPE = {"Equities": 0.3, "Bonds": 0.3, "Real estate": 0.3, "Commodities": 0.0, "Currencies": 0.0}
+
+# Holdouts, evaluated once with `run_all.py --holdout`.
+HOLDOUT_DIR = RAW_DIR / "holdout"
+BACKCAST_START = "2000-01-01"
+BACKCAST_END = "2007-04-10"          # the day before the development sample begins
+NEW_UNIVERSE = {
+    "Equities": ["EWG", "EWU", "EWC", "EWA", "EWY", "EWT", "EWH", "EWW", "EWQ", "EWL",
+                 "XLE", "XLF", "XLK", "XLU", "XLV", "XLP", "XLI", "XLB", "XLY"],
+    "Bonds": ["AGG", "MBB", "TLH", "IEI"],
+    "Commodities": ["DBB", "DBE", "DBP"],
+    "Currencies": ["FXB", "FXC", "FXA", "FXF"],
+}
+NEW_TICKERS = [t for group in NEW_UNIVERSE.values() for t in group]
+NEW_ASSET_CLASS = {t: g for g, ts in NEW_UNIVERSE.items() for t in ts}
+NEW_START = "2007-03-16"             # latest inception in the new universe (MBB)
+MIN_ASSETS = 2

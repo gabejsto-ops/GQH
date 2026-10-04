@@ -1,7 +1,30 @@
 """Load the price panel. The out-of-sample period is removed unless final=True."""
 import pandas as pd
 
-from src.config import IS_END, RAW_DIR, SAMPLE_START, TICKERS
+from src.config import (BACKCAST_END, BACKCAST_START, HOLDOUT_DIR, IS_END, NEW_START, NEW_TICKERS,
+                        RAW_DIR, SAMPLE_START, TICKERS)
+
+
+def load_holdout(which: str) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """Round 3 holdouts. 'backcast': the original 23 ETFs before the development sample, each entering
+    once it trades (NaN before inception). 'new': the never-used ETF universe. Only run_all --holdout calls this."""
+    if which == "backcast":
+        tickers, folder, start, end = TICKERS, RAW_DIR, BACKCAST_START, BACKCAST_END
+    elif which == "new":
+        tickers, folder, start, end = NEW_TICKERS, HOLDOUT_DIR, NEW_START, None
+    else:
+        raise ValueError(which)
+    opens, closes = {}, {}
+    for t in tickers:
+        df = pd.read_csv(folder / f"{t}.csv", index_col="Date", parse_dates=True)
+        opens[t], closes[t] = df["Open"], df["Close"]
+    opens, closes = pd.DataFrame(opens).loc[start:end], pd.DataFrame(closes).loc[start:end]
+    # After inception there must be no gaps; before inception NaN is expected.
+    for t in tickers:
+        live = closes[t].loc[closes[t].first_valid_index():]
+        if live.isna().any() or opens[t].loc[live.index].isna().any():
+            raise ValueError(f"gap in {t} after inception")
+    return opens, closes
 
 
 def load_panel(final: bool = False) -> tuple[pd.DataFrame, pd.DataFrame]:

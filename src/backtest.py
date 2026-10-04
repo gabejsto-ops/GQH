@@ -19,7 +19,8 @@ def simulate(opens: pd.DataFrame, closes: pd.DataFrame, weights: pd.DataFrame,
     of the day's starting equity.
     """
     dates = closes.index
-    O, C = opens.values, closes.values
+    # Before an ETF launches its prices are NaN and its weight is 0; treat its price as flat there.
+    O, C = opens.ffill().bfill().values, closes.ffill().bfill().values
     cost = cost_bps / 1e4
 
     execs = {}

@@ -27,15 +27,26 @@ UNIVERSE = {
 TICKERS = [t for group in UNIVERSE.values() for t in group]
 RAW_DIR = Path(__file__).resolve().parent / "raw"
 
+# Round 3 asset holdout: never used in development (see HYPOTHESIS.md, Round 3).
+NEW_UNIVERSE = {
+    "Equities": ["EWG", "EWU", "EWC", "EWA", "EWY", "EWT", "EWH", "EWW", "EWQ", "EWL",
+                 "XLE", "XLF", "XLK", "XLU", "XLV", "XLP", "XLI", "XLB", "XLY"],
+    "Bonds": ["AGG", "MBB", "TLH", "IEI"],
+    "Commodities": ["DBB", "DBE", "DBP"],
+    "Currencies": ["FXB", "FXC", "FXA", "FXF"],
+}
+NEW_TICKERS = [t for group in NEW_UNIVERSE.values() for t in group]
 
-def download(start: str = "2000-01-01") -> dict[str, pd.DataFrame]:
-    RAW_DIR.mkdir(parents=True, exist_ok=True)
+
+def download(start: str = "2000-01-01", tickers=None, out_dir=None) -> dict[str, pd.DataFrame]:
+    out_dir = out_dir or RAW_DIR
+    out_dir.mkdir(parents=True, exist_ok=True)
     frames = {}
-    for ticker in TICKERS:
+    for ticker in tickers or TICKERS:
         df = yf.download(ticker, start=start, auto_adjust=True, progress=False, multi_level_index=False)
         df = df[["Open", "High", "Low", "Close", "Volume"]].dropna(how="all")
         df.index.name = "Date"
-        df.to_csv(RAW_DIR / f"{ticker}.csv")
+        df.to_csv(out_dir / f"{ticker}.csv")
         frames[ticker] = df
     return frames
 
@@ -96,6 +107,9 @@ def coverage_report(frames: dict[str, pd.DataFrame]) -> pd.DataFrame:
 
 if __name__ == "__main__":
     report = coverage_report(download())
+    new_report = coverage_report(download(tickers=NEW_TICKERS, out_dir=RAW_DIR / "holdout"))
+    print("Holdout ETFs (coverage only):")
+    print(new_report.to_string(), "\n")
     factors = download_french()
     tbill = download_tbill()
     print(f"T-bill (DTB3): {tbill.index.min().date()} to {tbill.index.max().date()}")
