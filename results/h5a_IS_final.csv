@@ -1,0 +1,10 @@
+,"H5A (IS, L=252)"
+n_calm_efficient,445.0
+n_calm_inefficient,2986.0
+mean_calm_efficient,0.03456834882431939
+mean_calm_inefficient,0.016953095638745204
+difference,0.017615253185574185
+welch_t,1.1308299424118786
+welch_p,0.258583048096447
+clustered_t,0.7504922174382366
+clustered_p,0.4529583092873787

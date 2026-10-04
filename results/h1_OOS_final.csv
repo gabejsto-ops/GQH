@@ -1,0 +1,12 @@
+,"H1 (OOS, L=252)"
+n_high_vol_efficient,5.0
+n_high_vol_inefficient,128.0
+n_calm,396.0
+mean_high_vol_efficient,0.25710285807599764
+mean_high_vol_inefficient,0.07006386813643897
+mean_calm,0.04347237484642044
+difference,0.18703898993955867
+welch_t,2.0065708924555374
+welch_p,0.10417766507864598
+clustered_t,1.995295423654993
+clustered_p,0.046010668738744535

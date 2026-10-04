@@ -71,3 +71,25 @@ is disclosed, but it was not used for selection. Tables: `results/robust_*_IS_is
 - **Capacity (square-root impact):** net Sharpe 0.49 at $1M, 0.44 at $100M, 0.31 at $1B, and below zero
   near $10B (gross 0.55). Binding names today are the currency and commodity ETFs (2024 median ADV:
   FXY $10M, DBC $22M, UUP $22M); in 2008, HYG traded only $3.6M a day.
+
+## Out-of-sample: 2024-10-03 to 2026-10-02, run once (`python run_all.py --final`, log in `results/final_run_log.txt`)
+
+| L = 252, net of 5 bps (10 bps) | In-sample | Out-of-sample |
+|---|---|---|
+| S3 Sharpe | 0.49 (0.44) | **1.08 (1.05)** |
+| S1 Sharpe | 0.45 (0.39) | 1.06 (1.02) |
+| S3 max drawdown | −6.8% | −3.3% |
+| S3 turnover / yr | 3.2× | 2.6× (S1: 3.9×) |
+
+- **The strategy held up out of sample.** Both versions did better than in-sample. With only 2 years
+  of data the Sharpe estimate has a standard error of ~0.9, so this is consistent with the in-sample
+  result, not proof of a stronger edge.
+- **S3 vs S1 OOS:** again nearly identical risk-adjusted (gap t = 0.18, correlation 0.98), with 33% less
+  turnover and a smaller drawdown. Same conclusion as in-sample.
+- **Different sources than in-sample:** OOS profit came from commodities (sleeve Sharpe 1.5) and
+  equities (0.9), not mainly bonds. Market beta rose to 0.12 (t = 9.8) with average net exposure 0.81×
+  long: part of the OOS result is being long trending equity and gold markets.
+- **Mechanism tests OOS:** H3's slope is positive and significant OOS (p = 0.003, n = 133), the reverse of
+  in-sample (p = 0.81, n = 1,092). H1 has only 5 shock months OOS. H5a: no effect (p = 0.86). Given the
+  in-sample failure, the small sample, and the number of tests run, we treat the H3 OOS result as
+  probably chance or regime-specific. We do not claim it.

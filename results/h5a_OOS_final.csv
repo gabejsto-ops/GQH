@@ -1,0 +1,10 @@
+,"H5A (OOS, L=252)"
+n_calm_efficient,46.0
+n_calm_inefficient,350.0
+mean_calm_efficient,0.036385316346763556
+mean_calm_inefficient,0.044403816820661066
+difference,-0.00801850047389751
+welch_t,-0.17212606336496672
+welch_p,0.8639739490847713
+clustered_t,-0.11811080457296318
+clustered_p,0.9059798625670662

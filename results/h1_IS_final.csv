@@ -1,0 +1,12 @@
+,"H1 (IS, L=252)"
+n_high_vol_efficient,105.0
+n_high_vol_inefficient,995.0
+n_calm,3431.0
+mean_high_vol_efficient,0.03771026107677651
+mean_high_vol_inefficient,0.010682098640376812
+mean_calm,0.019237790383012335
+difference,0.0270281624363997
+welch_t,0.6259023107484495
+welch_p,0.5326082958334777
+clustered_t,0.488403946517072
+clustered_p,0.6252637470381155

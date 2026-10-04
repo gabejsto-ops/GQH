@@ -1,0 +1,368 @@
+Signals: 2008-05-30 to 2026-10-02 (222 month-ends)
+Deflated Sharpe hurdle from 15 trials (annualized SR): 0.278
+
+ lookback sizing  cost_bps period  ann_return  ann_vol  sharpe  max_drawdown  turnover_per_yr  worst_month   skew  dsr_prob
+       63     S0     5.000     IS       0.015    0.096   0.200        -0.182            6.140       -0.074  0.213     0.376
+       63     S0     5.000    OOS       0.035    0.064   0.575        -0.064            6.525       -0.036 -1.011       NaN
+       63     S0    10.000     IS       0.012    0.096   0.168        -0.194            6.141       -0.074  0.213       NaN
+       63     S0    10.000    OOS       0.032    0.064   0.524        -0.066            6.526       -0.036 -1.004       NaN
+       63     S1     5.000     IS       0.021    0.048   0.457        -0.092            9.373       -0.040 -0.028     0.765
+       63     S1     5.000    OOS       0.024    0.041   0.585        -0.043            9.449       -0.021 -0.535       NaN
+       63     S1    10.000     IS       0.016    0.048   0.358        -0.108            9.375       -0.040 -0.033       NaN
+       63     S1    10.000    OOS       0.019    0.041   0.470        -0.046            9.451       -0.021 -0.522       NaN
+       63     S2     5.000     IS       0.021    0.048   0.461        -0.094            9.455       -0.040 -0.012     0.770
+       63     S2     5.000    OOS       0.024    0.041   0.597        -0.043            9.471       -0.022 -0.535       NaN
+       63     S2    10.000     IS       0.016    0.048   0.362        -0.109            9.458       -0.040 -0.017       NaN
+       63     S2    10.000    OOS       0.019    0.041   0.482        -0.046            9.473       -0.022 -0.523       NaN
+       63     S3     5.000     IS       0.014    0.032   0.439        -0.061            6.139       -0.027 -0.270     0.741
+       63     S3     5.000    OOS       0.020    0.028   0.717        -0.022            5.750       -0.018 -0.516       NaN
+       63     S3    10.000     IS       0.011    0.032   0.344        -0.070            6.140       -0.027 -0.271       NaN
+       63     S3    10.000    OOS       0.017    0.028   0.616        -0.024            5.751       -0.018 -0.505       NaN
+       63     S4     5.000     IS       0.025    0.055   0.475        -0.111           12.126       -0.048 -0.200     0.786
+       63     S4     5.000    OOS       0.021    0.049   0.446        -0.044           12.593       -0.024 -0.609       NaN
+       63     S4    10.000     IS       0.019    0.055   0.364        -0.131           12.130       -0.050 -0.204       NaN
+       63     S4    10.000    OOS       0.014    0.049   0.317        -0.048           12.596       -0.025 -0.597       NaN
+      126     S0     5.000     IS       0.028    0.096   0.331        -0.193            4.300       -0.073 -0.048     0.585
+      126     S0     5.000    OOS       0.038    0.065   0.596        -0.067            3.868       -0.022 -1.084       NaN
+      126     S0    10.000     IS       0.025    0.096   0.309        -0.195            4.301       -0.074 -0.048       NaN
+      126     S0    10.000    OOS       0.036    0.066   0.566        -0.068            3.869       -0.023 -1.080       NaN
+      126     S1     5.000     IS       0.028    0.047   0.614        -0.093            6.814       -0.036 -0.351     0.911
+      126     S1     5.000    OOS       0.027    0.041   0.665        -0.040            4.856       -0.027 -0.275       NaN
+      126     S1    10.000     IS       0.024    0.047   0.541        -0.096            6.816       -0.036 -0.351       NaN
+      126     S1    10.000    OOS       0.024    0.041   0.606        -0.040            4.856       -0.027 -0.274       NaN
+      126     S2     5.000     IS       0.028    0.047   0.612        -0.093            6.891       -0.036 -0.363     0.910
+      126     S2     5.000    OOS       0.027    0.041   0.662        -0.040            4.871       -0.027 -0.273       NaN
+      126     S2    10.000     IS       0.024    0.047   0.538        -0.096            6.892       -0.036 -0.362       NaN
+      126     S2    10.000    OOS       0.024    0.041   0.602        -0.040            4.871       -0.027 -0.272       NaN
+      126     S3     5.000     IS       0.019    0.030   0.648        -0.064            4.331       -0.025 -0.459     0.930
+      126     S3     5.000    OOS       0.024    0.031   0.777        -0.032            3.393       -0.021 -0.507       NaN
+      126     S3    10.000     IS       0.017    0.030   0.576        -0.065            4.331       -0.025 -0.461       NaN
+      126     S3    10.000    OOS       0.022    0.031   0.722        -0.032            3.393       -0.021 -0.503       NaN
+      126     S4     5.000     IS       0.032    0.052   0.635        -0.092            9.537       -0.038 -0.391     0.924
+      126     S4     5.000    OOS       0.030    0.049   0.616        -0.055            7.981       -0.037 -0.456       NaN
+      126     S4    10.000     IS       0.027    0.052   0.544        -0.100            9.539       -0.038 -0.394       NaN
+      126     S4    10.000    OOS       0.026    0.050   0.535        -0.056            7.982       -0.038 -0.455       NaN
+      252     S0     5.000     IS       0.003    0.092   0.077        -0.281            3.190       -0.081 -0.175     0.209
+      252     S0     5.000    OOS       0.094    0.076   1.220        -0.050            2.478       -0.028 -0.961       NaN
+      252     S0    10.000     IS       0.001    0.092   0.060        -0.282            3.191       -0.081 -0.175       NaN
+      252     S0    10.000    OOS       0.093    0.076   1.204        -0.050            2.479       -0.028 -0.959       NaN
+      252     S1     5.000     IS       0.019    0.044   0.451        -0.120            5.088       -0.035 -0.429     0.756
+      252     S1     5.000    OOS       0.052    0.049   1.062        -0.043            3.903       -0.028 -0.396       NaN
+      252     S1    10.000     IS       0.016    0.044   0.393        -0.125            5.089       -0.035 -0.428       NaN
+      252     S1    10.000    OOS       0.050    0.049   1.021        -0.043            3.904       -0.028 -0.392       NaN
+      252     S2     5.000     IS       0.019    0.044   0.452        -0.120            5.159       -0.035 -0.426     0.758
+      252     S2     5.000    OOS       0.053    0.049   1.071        -0.043            3.930       -0.028 -0.396       NaN
+      252     S2    10.000     IS       0.017    0.044   0.394        -0.124            5.160       -0.036 -0.426       NaN
+      252     S2    10.000    OOS       0.051    0.049   1.031        -0.043            3.930       -0.028 -0.392       NaN
+      252     S3     5.000     IS       0.015    0.031   0.494        -0.068            3.225       -0.029 -0.676     0.806
+      252     S3     5.000    OOS       0.040    0.037   1.083        -0.033            2.621       -0.021 -0.486       NaN
+      252     S3    10.000     IS       0.013    0.031   0.442        -0.071            3.225       -0.029 -0.675       NaN
+      252     S3    10.000    OOS       0.038    0.037   1.047        -0.033            2.621       -0.021 -0.482       NaN
+      252     S4     5.000     IS       0.022    0.050   0.458        -0.125            7.822       -0.037 -0.443     0.765
+      252     S4     5.000    OOS       0.054    0.057   0.957        -0.058            7.018       -0.039 -0.542       NaN
+      252     S4    10.000     IS       0.018    0.050   0.379        -0.131            7.825       -0.037 -0.445       NaN
+      252     S4    10.000    OOS       0.050    0.057   0.894        -0.059            7.019       -0.039 -0.536       NaN
+
+H1 (IS, L=252)
+n_high_vol_efficient         105.000
+n_high_vol_inefficient       995.000
+n_calm                      3431.000
+mean_high_vol_efficient        0.038
+mean_high_vol_inefficient      0.011
+mean_calm                      0.019
+difference                     0.027
+welch_t                        0.626
+welch_p                        0.533
+clustered_t                    0.488
+clustered_p                    0.625
+
+H3 (IS, L=252)
+n             1100.000
+slope_on_er     -0.019
+clustered_t     -0.201
+clustered_p      0.840
+
+H5A (IS, L=252)
+n_calm_efficient         445.000
+n_calm_inefficient      2986.000
+mean_calm_efficient        0.035
+mean_calm_inefficient      0.017
+difference                 0.018
+welch_t                    1.131
+welch_p                    0.259
+clustered_t                0.750
+clustered_p                0.453
+
+H1 (OOS, L=252)
+n_high_vol_efficient          5.000
+n_high_vol_inefficient      128.000
+n_calm                      396.000
+mean_high_vol_efficient       0.257
+mean_high_vol_inefficient     0.070
+mean_calm                     0.043
+difference                    0.187
+welch_t                       2.007
+welch_p                       0.104
+clustered_t                   1.995
+clustered_p                   0.046
+
+H3 (OOS, L=252)
+n             133.000
+slope_on_er     0.607
+clustered_t     2.982
+clustered_p     0.003
+
+H5A (OOS, L=252)
+n_calm_efficient         46.000
+n_calm_inefficient      350.000
+mean_calm_efficient       0.036
+mean_calm_inefficient     0.044
+difference               -0.008
+welch_t                  -0.172
+welch_p                   0.864
+clustered_t              -0.118
+clustered_p               0.906
+
+===== Robustness: IS (final S3 vs benchmark S1, L=252) =====
+
+--- summary ---
+                         S1          S3
+start            2008-06-02  2008-06-02
+end              2024-10-02  2024-10-02
+ann_return            0.019       0.015
+ann_vol               0.044       0.031
+sharpe                0.451       0.494
+max_drawdown         -0.120      -0.068
+turnover_per_yr       5.088       3.225
+worst_month          -0.035      -0.029
+skew                 -0.429      -0.676
+
+--- lag_check ---
+  sizing  fill_delay_days  sharpe
+0     S1                1   0.451
+1     S1                2   0.421
+2     S1                5   0.382
+3     S3                1   0.494
+4     S3                2   0.471
+5     S3                5   0.455
+
+--- lookback_sweep ---
+sizing      S1    S3
+lookback            
+21       0.053 0.097
+42       0.405 0.377
+63       0.457 0.439
+84       0.519 0.504
+105      0.510 0.507
+126      0.614 0.648
+168      0.510 0.620
+210      0.473 0.588
+252      0.451 0.494
+
+--- by_year ---
+         S1     S3
+Date              
+2008  0.015 -0.003
+2009 -0.038 -0.016
+2010  0.033  0.028
+2011  0.019  0.010
+2012  0.029  0.018
+2013  0.091  0.042
+2014  0.017  0.008
+2015  0.040  0.032
+2016 -0.057 -0.034
+2017  0.072  0.057
+2018 -0.056 -0.026
+2019  0.035  0.039
+2020  0.022  0.012
+2021  0.010  0.019
+2022  0.054  0.023
+2023 -0.012 -0.007
+2024  0.051  0.047
+
+--- by_asset_class ---
+             ann_contribution  sleeve_sharpe
+Bonds                   0.009          0.656
+Commodities             0.002          0.191
+Currencies              0.001          0.146
+Equities                0.004          0.244
+Real estate             0.001          0.194
+
+--- sharpe_difference ---
+sharpe_final                 0.494
+sharpe_bench                 0.451
+vol_matched_ann_return_gap   0.002
+gap_hac_t                    0.564
+gap_hac_p                    0.573
+corr_final_bench             0.947
+alpha_on_S1_ann              0.002
+alpha_on_S1_t                0.856
+beta_on_S1                   0.663
+
+--- factor_exposure ---
+                          S1          S3
+beta_Mkt-RF            0.023       0.035
+beta_SMB               0.046       0.035
+beta_HML               0.026       0.027
+beta_Mom               0.132       0.092
+t_Mkt-RF               2.516       5.548
+t_SMB                  5.465       6.109
+t_HML                  3.103       4.701
+t_Mom                 19.906      18.848
+alpha_ann              0.018       0.012
+alpha_t                1.882       1.728
+r_squared              0.240       0.245
+n_days                  4113        4113
+last_factor_date  2024-10-02  2024-10-02
+
+--- risk_profile ---
+                                    S1          S3
+avg_gross_exposure               1.385       0.799
+max_gross_exposure               2.706       2.143
+avg_net_exposure                 0.648       0.505
+max_single_position              1.673       1.641
+max_single_position_ticker         SHY         SHY
+max_class_gross                  2.157       1.915
+max_class_gross_name             Bonds       Bonds
+daily_var_99                    -0.008      -0.006
+daily_cvar_99                   -0.010      -0.008
+worst_day                       -0.018      -0.014
+worst_day_date              2022-11-10  2022-11-10
+longest_drawdown_days             1047         840
+
+--- stress_windows ---
+                                               SPY     S1     S3
+window                                                          
+GFC (2008-09 to 2009-03)                    -0.369  0.025  0.001
+Momentum crash rebound (2009-03 to 2009-06)  0.351 -0.052 -0.031
+Taper tantrum (2013-05 to 2013-06)           0.010 -0.014 -0.021
+COVID crash (2020-02-20 to 2020-03-23)      -0.337 -0.022 -0.029
+COVID rebound (2020-03-24 to 2020-06-30)     0.389  0.012  0.016
+2022 rate shock (2022-01 to 2022-10)        -0.177  0.092  0.054
+
+--- capacity ---
+               aum  net_sharpe  impact_drag_ann  median_participation  max_participation
+0      1000000.000       0.488            0.000                 0.000              0.029
+1     10000000.000       0.475            0.001                 0.000              0.293
+2    100000000.000       0.435            0.002                 0.001              2.934
+3   1000000000.000       0.306            0.006                 0.013             29.342
+4  10000000000.000      -0.099            0.018                 0.134            293.423
+5 100000000000.000      -1.383            0.058                 1.343           2934.231
+
+--- capacity_gross_sharpe ---
+gross_sharpe   0.546
+
+===== Robustness: OOS (final S3 vs benchmark S1, L=252) =====
+
+--- summary ---
+                         S1          S3
+start            2024-10-03  2024-10-03
+end              2026-10-02  2026-10-02
+ann_return            0.052       0.040
+ann_vol               0.049       0.037
+sharpe                1.062       1.083
+max_drawdown         -0.043      -0.033
+turnover_per_yr       3.903       2.621
+worst_month          -0.028      -0.021
+skew                 -0.396      -0.486
+
+--- lag_check ---
+  sizing  fill_delay_days  sharpe
+0     S1                1   1.062
+1     S1                2   1.092
+2     S1                5   0.897
+3     S3                1   1.083
+4     S3                2   1.074
+5     S3                5   1.032
+
+--- lookback_sweep ---
+sizing      S1    S3
+lookback            
+21       0.242 0.249
+42       0.143 0.318
+63       0.585 0.717
+84       1.065 0.873
+105      0.699 0.588
+126      0.665 0.777
+168      1.292 1.233
+210      1.384 1.177
+252      1.062 1.083
+
+--- by_year ---
+         S1     S3
+Date              
+2024 -0.014 -0.012
+2025  0.096  0.066
+2026  0.024  0.026
+
+--- by_asset_class ---
+             ann_contribution  sleeve_sharpe
+Bonds                   0.008          0.462
+Commodities             0.018          1.520
+Currencies             -0.001         -0.252
+Equities                0.018          0.895
+Real estate            -0.001         -0.334
+
+--- sharpe_difference ---
+sharpe_final                 1.083
+sharpe_bench                 1.062
+vol_matched_ann_return_gap   0.001
+gap_hac_t                    0.184
+gap_hac_p                    0.854
+corr_final_bench             0.980
+alpha_on_S1_ann              0.002
+alpha_on_S1_t                0.363
+beta_on_S1                   0.734
+
+--- factor_exposure ---
+                          S1          S3
+beta_Mkt-RF            0.161       0.121
+beta_SMB               0.088       0.057
+beta_HML              -0.004      -0.004
+beta_Mom               0.047       0.035
+t_Mkt-RF               9.281       9.778
+t_SMB                  4.433       3.827
+t_HML                 -0.161      -0.173
+t_Mom                  3.903       3.841
+alpha_ann              0.036       0.025
+alpha_t                1.382       1.260
+r_squared              0.461       0.441
+n_days                   478         478
+last_factor_date  2026-08-31  2026-08-31
+
+--- risk_profile ---
+                                    S1          S3
+avg_gross_exposure               1.247       0.876
+max_gross_exposure               1.762       1.336
+avg_net_exposure                 1.016       0.812
+max_single_position              0.521       0.520
+max_single_position_ticker         SHY         SHY
+max_class_gross                  1.164       0.987
+max_class_gross_name             Bonds       Bonds
+daily_var_99                    -0.010      -0.007
+daily_cvar_99                   -0.011      -0.009
+worst_day                       -0.014      -0.011
+worst_day_date              2026-03-20  2026-03-20
+longest_drawdown_days               98         100
+
+--- stress_windows ---
+                                               SPY  S1  S3
+window                                                    
+GFC (2008-09 to 2009-03)                    -0.369 NaN NaN
+Momentum crash rebound (2009-03 to 2009-06)  0.351 NaN NaN
+Taper tantrum (2013-05 to 2013-06)           0.010 NaN NaN
+COVID crash (2020-02-20 to 2020-03-23)      -0.337 NaN NaN
+COVID rebound (2020-03-24 to 2020-06-30)     0.389 NaN NaN
+2022 rate shock (2022-01 to 2022-10)        -0.177 NaN NaN
+
+--- capacity ---
+               aum  net_sharpe  impact_drag_ann  median_participation  max_participation
+0      1000000.000       1.078            0.000                 0.000              0.021
+1     10000000.000       1.067            0.001                 0.000              0.213
+2    100000000.000       1.033            0.002                 0.001              2.134
+3   1000000000.000       0.926            0.006                 0.007             21.344
+4  10000000000.000       0.589            0.018                 0.073            213.443
+5 100000000000.000      -0.479            0.057                 0.731           2134.432
+
+--- capacity_gross_sharpe ---
+gross_sharpe   1.118
