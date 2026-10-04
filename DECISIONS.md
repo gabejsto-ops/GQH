@@ -36,3 +36,10 @@ Points HYPOTHESIS.md left open, fixed here before seeing results:
   clustered by month. Primary lookback L = 252.
 - **Deflated Sharpe:** Bailey & López de Prado (2014), with N = 9 and the variance of the 9 variants'
   daily Sharpe ratios at the 5 bps cost level.
+
+## 2026-10-03: Final strategy selected (after Round 2, before robustness tests and OOS)
+
+- **Primary strategy: S3 (Bayesian confidence sizing) at L = 252. Benchmark: S1 at L = 252.**
+- L = 252 is the lookback pre-registered as primary in HYPOTHESIS.md. S3 at 126d had the highest
+  in-sample Sharpe, but choosing it would be selecting on results; it is reported as a variant only.
+- No parameters change from here on. Robustness checks are diagnostics on this fixed specification.
