@@ -2,7 +2,8 @@
 
 Sources: Yahoo Finance via yfinance (auto_adjust=True adjusts open/high/low/close for
 splits and dividends), and the Kenneth French Data Library (daily Fama-French factors and momentum,
-for the factor-exposure check). Raw files go to data/raw/ and are not committed.
+for the factor-exposure check), and FRED (3-month T-bill rate DTB3, the risk-free rate).
+Raw files go to data/raw/ and are not committed.
 
 Usage:  python data/download.py
 """
@@ -62,6 +63,19 @@ def download_french() -> pd.DataFrame:
     return factors
 
 
+TBILL_URL = "https://fred.stlouisfed.org/graph/fredgraph.csv?id=DTB3"
+
+
+def download_tbill() -> pd.Series:
+    """3-month T-bill secondary-market rate, percent per year (FRED DTB3)."""
+    with urllib.request.urlopen(TBILL_URL) as resp:
+        df = pd.read_csv(io.BytesIO(resp.read()), index_col=0, parse_dates=True, na_values=".")
+    rate = df.iloc[:, 0].dropna().rename("DTB3")
+    rate.index.name = "Date"
+    rate.to_csv(RAW_DIR / "tbill.csv")
+    return rate
+
+
 def coverage_report(frames: dict[str, pd.DataFrame]) -> pd.DataFrame:
     """Data-quality checks only: dates, gaps, and suspicious one-day jumps (bad prints or
     missing split adjustments). Deliberately reports no strategy or performance numbers."""
@@ -83,6 +97,8 @@ def coverage_report(frames: dict[str, pd.DataFrame]) -> pd.DataFrame:
 if __name__ == "__main__":
     report = coverage_report(download())
     factors = download_french()
+    tbill = download_tbill()
+    print(f"T-bill (DTB3): {tbill.index.min().date()} to {tbill.index.max().date()}")
     print(f"French factors: {factors.index.min().date()} to {factors.index.max().date()}, "
           f"columns {list(factors.columns)}\n")
     print(report.to_string())

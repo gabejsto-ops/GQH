@@ -9,7 +9,9 @@ from src.config import ER_THRESHOLD
 from src.signals import trailing_return
 
 
-def summarize(daily: pd.DataFrame, col: str = "net") -> dict:
+def summarize(daily: pd.DataFrame, col: str | None = None) -> dict:
+    """Headline metrics on excess-of-cash returns when available (see simulate), else net returns."""
+    col = col or ("excess" if "excess" in daily else "net")
     r = daily[col]
     years = len(r) / 252
     wealth = (1 + r).cumprod()
@@ -24,7 +26,32 @@ def summarize(daily: pd.DataFrame, col: str = "net") -> dict:
         "turnover_per_yr": daily["turnover"].sum() / years,
         "worst_month": monthly.min(),
         "skew": stats.skew(r),
+        "sharpe_incl_cash_carry": daily["net"].mean() / daily["net"].std() * np.sqrt(252),
     }
+
+
+def bootstrap_sharpe(returns: pd.DataFrame, n_boot: int = 2000, block: int = 21,
+                     seed: int = 0) -> pd.DataFrame:
+    """Moving-block bootstrap 95% intervals for the annualized Sharpe of each column, plus the
+    difference between the first two columns (same resampled blocks, so the pairing is kept)."""
+    rng = np.random.default_rng(seed)
+    x = returns.dropna().values
+    n = len(x)
+    n_blocks = int(np.ceil(n / block))
+    sharpes = np.empty((n_boot, x.shape[1]))
+    for b in range(n_boot):
+        starts = rng.integers(0, n - block + 1, n_blocks)
+        sample = np.concatenate([x[s:s + block] for s in starts])[:n]
+        sharpes[b] = sample.mean(0) / sample.std(0, ddof=1) * np.sqrt(252)
+    point = x.mean(0) / x.std(0, ddof=1) * np.sqrt(252)
+    out = pd.DataFrame({"sharpe": point, "ci_low": np.percentile(sharpes, 2.5, 0),
+                        "ci_high": np.percentile(sharpes, 97.5, 0),
+                        "p_sharpe_le_0": (sharpes <= 0).mean(0)}, index=returns.columns)
+    if x.shape[1] >= 2:
+        d = sharpes[:, 0] - sharpes[:, 1]
+        out.loc[f"{returns.columns[0]} minus {returns.columns[1]}"] = [
+            point[0] - point[1], np.percentile(d, 2.5), np.percentile(d, 97.5), (d <= 0).mean()]
+    return out
 
 
 def deflated_sharpe(r: pd.Series, trial_sharpes_daily: list[float]) -> tuple[float, float]:
@@ -40,10 +67,10 @@ def deflated_sharpe(r: pd.Series, trial_sharpes_daily: list[float]) -> tuple[flo
     return float(stats.norm.cdf(z)), float(sr0 * np.sqrt(252))
 
 
-def h1_panel(opens, closes, feats, dates, lookback) -> pd.DataFrame:
-    """One row per asset-month: risk-scaled TSMOM outcome plus state labels."""
+def h1_panel(opens, closes, feats, dates, lookback, rf=None) -> pd.DataFrame:
+    """One row per asset-month: risk-scaled TSMOM outcome (in excess of cash if rf) plus state labels."""
     sign = np.sign(trailing_return(closes, lookback)).loc[dates]
-    outcome = sign * forward_returns(opens, dates) / feats["vol_short"].loc[dates]
+    outcome = sign * forward_returns(opens, dates, rf) / feats["vol_short"].loc[dates]
     panel = pd.DataFrame({
         "outcome": outcome.stack(),
         "high_vol": feats["high_vol"].loc[dates].stack().astype(bool),

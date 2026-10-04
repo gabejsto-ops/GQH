@@ -49,3 +49,13 @@ Points HYPOTHESIS.md left open, fixed here before seeing results:
 - The SHY / bond concentration found in the robustness checks is **not** fixed before OOS. Adding a
   gross cap would be a new trial; it is proposed in the note as a next step instead.
 - Code frozen at this commit. Next: `python run_all.py --final`, run once, and the result is reported as is.
+
+## 2026-10-03: Reporting correction after OOS (strategy unchanged)
+
+- All metrics now reported **in excess of cash** (3-month T-bill, FRED DTB3), as in the TSMOM
+  literature. The earlier tables included cash carry (see VARIANTS.md, post-OOS audit).
+- Added diagnostics: block-bootstrap 95% Sharpe intervals, a matched-risk (10% vol) comparison, and a
+  long-only baseline (S1's vol-targeted weights, always long, no trend signal).
+- `run_all.py --final` is re-run to apply the corrected *measurement* to the same frozen strategy
+  (target weights and net returns verified identical). This is not a second chance at OOS: no
+  parameter, rule or universe change was made, and the earlier OOS numbers stay in the log.

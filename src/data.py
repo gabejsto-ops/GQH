@@ -26,3 +26,18 @@ def load_panel(final: bool = False) -> tuple[pd.DataFrame, pd.DataFrame]:
     if opens.isna().any().any() or closes.isna().any().any():
         raise ValueError("missing prices in sample; see data/download.py coverage report")
     return opens, closes
+
+
+def load_rf(index: pd.DatetimeIndex) -> pd.Series:
+    """Daily risk-free return on each trading day: 3-month T-bill rate (FRED DTB3) / 252.
+
+    Uses the latest rate published on or before each day (forward-filled over holidays).
+    """
+    path = RAW_DIR / "tbill.csv"
+    if not path.exists():
+        raise FileNotFoundError(f"{path} missing: run `python data/download.py` first")
+    rate = pd.read_csv(path, index_col="Date", parse_dates=True)["DTB3"]
+    daily = rate.reindex(rate.index.union(index)).ffill().reindex(index)
+    if daily.isna().any():
+        raise ValueError("risk-free rate missing for part of the sample")
+    return daily / 100 / 252
