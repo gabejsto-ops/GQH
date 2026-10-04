@@ -43,3 +43,9 @@ Points HYPOTHESIS.md left open, fixed here before seeing results:
 - L = 252 is the lookback pre-registered as primary in HYPOTHESIS.md. S3 at 126d had the highest
   in-sample Sharpe, but choosing it would be selecting on results; it is reported as a variant only.
 - No parameters change from here on. Robustness checks are diagnostics on this fixed specification.
+
+## 2026-10-03: Pre-OOS freeze
+
+- The SHY / bond concentration found in the robustness checks is **not** fixed before OOS. Adding a
+  gross cap would be a new trial; it is proposed in the note as a next step instead.
+- Code frozen at this commit. Next: `python run_all.py --final`, run once, and the result is reported as is.
